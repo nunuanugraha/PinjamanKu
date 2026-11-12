@@ -394,24 +394,47 @@
     function renderCharts(data) {
       if (!Array.isArray(data) || data.length === 0) return;
 
-      // Kelompokkan data berdasarkan Bulan (YYYY-MM)
+      // Kelompokkan data berdasarkan Bulan (YYYY-MM) dengan parser tanggal yang kebal format Google gviz Date(...)
       const monthlyData = {};
       data.forEach(item => {
         if (!item.tanggalPinjam) return;
-        const monthKey = String(item.tanggalPinjam).slice(0, 7); // format '2026-10'
-        if (!monthlyData[monthKey]) {
-          monthlyData[monthKey] = { modal: 0, bunga: 0 };
+        let yearMonth = '';
+
+        if (typeof item.tanggalPinjam === 'string' && item.tanggalPinjam.startsWith('Date(')) {
+          const parts = item.tanggalPinjam.match(/\d+/g);
+          if (parts && parts.length >= 2) {
+            const yr = parts[0];
+            const mo = String(parseInt(parts[1], 10) + 1).padStart(2, '0'); // gviz month is 0-indexed
+            yearMonth = `${yr}-${mo}`;
+          }
+        } else {
+          // Tanggal ISO standar YYYY-MM-DD atau Date string
+          const dStr = String(item.tanggalPinjam).trim();
+          if (dStr.length >= 7) {
+            yearMonth = dStr.slice(0, 7);
+          }
         }
-        monthlyData[monthKey].modal += Number(item.nominalPinjaman) || 0;
-        monthlyData[monthKey].bunga += Number(item.bungaNominal) || 0;
+
+        if (!yearMonth || yearMonth.length !== 7) return;
+
+        if (!monthlyData[yearMonth]) {
+          monthlyData[yearMonth] = { modal: 0, bunga: 0 };
+        }
+        monthlyData[yearMonth].modal += Number(item.nominalPinjaman) || 0;
+        monthlyData[yearMonth].bunga += Number(item.bungaNominal) || 0;
       });
 
       // Urutkan bulan secara kronologis
       const sortedMonths = Object.keys(monthlyData).sort();
       const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ags", "Sep", "Okt", "Nov", "Des"];
       const labels = sortedMonths.map(m => {
-        const [year, month] = m.split('-');
-        return `${monthNames[parseInt(month, 10) - 1]} ${year}`;
+        const parts = m.split('-');
+        if (parts.length === 2) {
+          const year = parts[0];
+          const monthIndex = parseInt(parts[1], 10) - 1;
+          return `${monthNames[monthIndex] || parts[1]} ${year}`;
+        }
+        return m;
       });
 
       const modalValues = sortedMonths.map(m => monthlyData[m].modal);

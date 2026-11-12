@@ -121,6 +121,21 @@ class PinjamanAPI {
     });
   }
 
+  // Helper normalisasi tanggal Google Sheets (gviz) ke YYYY-MM-DD
+  static normalizeDate(val) {
+    if (!val) return '';
+    if (typeof val === 'string' && val.startsWith('Date(')) {
+      const parts = val.match(/\d+/g);
+      if (parts && parts.length >= 3) {
+        const y = parts[0];
+        const m = String(parseInt(parts[1], 10) + 1).padStart(2, '0');
+        const d = String(parts[2]).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+      }
+    }
+    return String(val).slice(0, 10);
+  }
+
   static async request(action, method = 'GET', data = null) {
     try {
       if (method === 'GET') {
@@ -130,12 +145,12 @@ class PinjamanAPI {
             id: r.id || r.ID || '',
             nama: r.nama || r.Nama || 'Tanpa Nama',
             telepon: r.telepon || r.Telepon || '',
-            tanggalPinjam: r.tanggalPinjam || r.TanggalPinjam || '',
+            tanggalPinjam: this.normalizeDate(r.tanggalPinjam || r.TanggalPinjam),
             nominalPinjaman: Number(r.nominalPinjaman || r.NominalPinjaman || 0),
             bungaPersen: Number(r.bungaPersen || r.BungaPersen || 30),
             bungaNominal: Number(r.bungaNominal || r.BungaNominal || 0),
             totalBayar: Number(r.totalBayar || r.TotalBayar || 0),
-            jatuhTempo: r.jatuhTempo || r.JatuhTempo || '',
+            jatuhTempo: this.normalizeDate(r.jatuhTempo || r.JatuhTempo),
             totalDibayar: Number(r.totalDibayar || r.TotalDibayar || 0),
             sisaTagihan: Number(r.sisaTagihan || r.SisaTagihan || 0),
             status: r.status || r.Status || 'Belum Lunas',
@@ -151,7 +166,7 @@ class PinjamanAPI {
           const rows = await this.fetchSheetDirect('Tracker');
           const result = rows.map(r => ({
             id: r.id || '',
-            tanggal: r.tanggal || '',
+            tanggal: this.normalizeDate(r.tanggal),
             tipe: r.tipe || 'Pemasukan',
             nominal: Number(r.nominal || 0),
             kategori: r.kategori || 'Umum',
@@ -168,7 +183,7 @@ class PinjamanAPI {
             id: r.id || '',
             loanId: r.loanId || '',
             namaPeminjam: r.namaPeminjam || r.loanId || 'Pembayaran',
-            tanggalPembayaran: r.tanggalPembayaran || '',
+            tanggalPembayaran: this.normalizeDate(r.tanggalPembayaran),
             nominalPembayaran: Number(r.nominalPembayaran || 0),
             jenisPembayaran: r.jenisPembayaran || 'pelunasan',
             catatan: r.catatan || ''
