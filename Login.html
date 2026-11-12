@@ -11,6 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <script src="app.js"></script>
 
   <style>
     :root {
@@ -24,7 +25,6 @@
     }
 
     * { box-sizing: border-box; }
-
     html { min-height: 100%; }
 
     body {
@@ -44,17 +44,12 @@
       position: relative;
       isolation: isolate;
       width: 100%;
-      max-width: 448px;
+      max-width: 440px;
       overflow: hidden;
       border: 1px solid rgba(226, 232, 240, .9);
       border-radius: 28px;
-      background: rgba(255, 255, 255, .94);
+      background: rgba(255, 255, 255, .96);
       box-shadow: 0 28px 80px -34px rgba(30, 64, 120, .28), 0 8px 24px -16px rgba(15, 23, 42, .16);
-    }
-
-    .login-topline {
-      height: 5px;
-      background: linear-gradient(90deg, #1d4ed8, #60a5fa 58%, #34d399);
     }
 
     .brand-mark {
@@ -69,321 +64,206 @@
       box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 8px 18px -12px rgba(37, 99, 235, .7);
     }
 
-    .field-label {
-      display: block;
-      margin-bottom: 9px;
-      color: #334155;
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: -.01em;
-    }
-
-    .field-wrap { position: relative; }
-
-    .field-icon {
-      position: absolute;
-      top: 50%;
-      left: 15px;
-      transform: translateY(-50%);
-      color: #64748b;
-      font-size: 20px;
-      pointer-events: none;
-    }
-
-    .login-input {
-      display: block;
+    .field-input {
       width: 100%;
-      min-height: 52px;
-      padding: 13px 46px 13px 46px;
+      height: 48px;
+      padding: 0 16px;
       border: 1px solid var(--line);
       border-radius: 14px;
-      outline: none;
-      color: #0f172a;
       background: #f8fafc;
-      font: inherit;
       font-size: 14px;
-      transition: border-color .18s ease, background-color .18s ease, box-shadow .18s ease;
+      font-weight: 500;
+      color: var(--ink);
+      transition: all .2s ease;
+      outline: none;
     }
 
-    .login-input::placeholder { color: #94a3b8; }
-
-    .login-input:hover { border-color: #c4d2e5; }
-
-    .login-input:focus {
-      border-color: #4f83ee;
+    .field-input:focus {
       background: #fff;
+      border-color: var(--blue);
       box-shadow: 0 0 0 4px var(--focus);
-    }
-
-    .password-toggle {
-      position: absolute;
-      top: 50%;
-      right: 7px;
-      display: grid;
-      place-items: center;
-      width: 40px;
-      height: 40px;
-      transform: translateY(-50%);
-      border: 0;
-      border-radius: 11px;
-      color: #64748b;
-      background: transparent;
-      cursor: pointer;
-      transition: color .18s ease, background-color .18s ease;
-    }
-
-    .password-toggle:hover { color: #1d4ed8; background: #eff6ff; }
-
-    .primary-button {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      width: 100%;
-      min-height: 52px;
-      margin-top: 26px;
-      padding: 13px 18px;
-      border: 1px solid #1e47b0;
-      border-radius: 14px;
-      color: #fff;
-      background: linear-gradient(135deg, #2d65e0, #214fc2);
-      box-shadow: 0 10px 22px -12px rgba(37, 99, 235, .8);
-      font: inherit;
-      font-size: 14px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
-    }
-
-    .primary-button:hover:not(:disabled) {
-      transform: translateY(-1px);
-      background: linear-gradient(135deg, #2459d3, #193f9f);
-      box-shadow: 0 14px 26px -13px rgba(37, 99, 235, .9);
-    }
-
-    .primary-button:active:not(:disabled) { transform: translateY(0); }
-
-    .primary-button:disabled {
-      cursor: wait;
-      opacity: .78;
-      box-shadow: none;
-    }
-
-    button:focus-visible {
-      outline: 3px solid #1d4ed8;
-      outline-offset: 3px;
-    }
-
-    .alert-box {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      padding: 13px 14px;
-      border: 1px solid #fecdd3;
-      border-radius: 14px;
-      color: #9f1239;
-      background: #fff1f2;
-      font-size: 13px;
-      line-height: 1.5;
-    }
-
-    .alert-box[hidden] { display: none; }
-
-    .security-note {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 7px;
-      color: #64748b;
-      font-size: 11px;
-      line-height: 1.5;
-      text-align: center;
-    }
-
-    @media (max-width: 480px) {
-      body { padding: 18px !important; }
-      .login-shell { border-radius: 23px; }
-      .login-content { padding: 27px 23px 24px !important; }
-      .login-heading { font-size: 25px !important; }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after {
-        scroll-behavior: auto !important;
-        animation-duration: .01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: .01ms !important;
-      }
     }
   </style>
 </head>
 
-<body class="flex items-center justify-center p-6">
-  <main class="login-shell">
-    <div class="login-topline" aria-hidden="true"></div>
+<body class="flex items-center justify-center p-4">
+  <div class="login-shell p-7 sm:p-9">
+    <div class="flex items-center gap-4 mb-6">
+      <div class="brand-mark text-2xl">
+        <i class="ph-fill ph-wallet"></i>
+      </div>
+      <div>
+        <span class="text-xs font-bold uppercase tracking-wider text-blue-600">Sistem Keuangan</span>
+        <h1 class="text-2xl font-extrabold text-slate-800">PinjamanKu</h1>
+      </div>
+    </div>
 
-    <div class="login-content relative z-10 p-10">
-      <header class="mb-8 text-center">
-        <div class="brand-mark mx-auto mb-5" aria-hidden="true">
-          <i class="ph-fill ph-wallet text-3xl"></i>
+    <p class="text-sm text-slate-500 mb-6">
+      Selamat datang! Masuk dengan akun kamu untuk mengelola catatan pinjaman & money tracker.
+    </p>
+
+    <!-- Alert Box -->
+    <div id="loginAlert" class="hidden mb-5 p-3.5 rounded-xl text-xs font-semibold flex items-center gap-2"></div>
+
+    <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+      <div>
+        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Username</label>
+        <div class="relative">
+          <input type="text" id="username" required autocomplete="username" placeholder="nunuanugraha"
+            class="field-input pl-11">
+          <i class="ph-bold ph-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
         </div>
-        <p class="mb-2 text-xs font-bold uppercase tracking-[.18em] text-blue-700">PinjamanKu</p>
-        <h1 class="login-heading text-[28px] font-extrabold tracking-tight text-slate-900">Selamat datang kembali</h1>
-        <p class="mt-2 text-sm leading-6 text-slate-600">Masuk ke akun Anda untuk melanjutkan.</p>
-      </header>
-
-      <div id="loginAlert" class="alert-box mb-5" role="alert" aria-live="polite" hidden>
-        <i class="ph-fill ph-warning-circle mt-0.5 shrink-0 text-xl" aria-hidden="true"></i>
-        <p id="loginAlertText"></p>
       </div>
 
-      <form id="formLogin" onsubmit="initSubmitLogin(event)">
-        <div class="space-y-5">
-          <div>
-            <label for="inputUsername" class="field-label">Nama pengguna</label>
-            <div class="field-wrap">
-              <i class="field-icon ph ph-user" aria-hidden="true"></i>
-              <input
-                type="text"
-                id="inputUsername"
-                name="username"
-                autocomplete="username"
-                autocapitalize="none"
-                spellcheck="false"
-                required
-                placeholder="Masukkan nama pengguna"
-                class="login-input"
-              >
-            </div>
-          </div>
-
-          <div>
-            <label for="inputPassword" class="field-label">Kata sandi</label>
-            <div class="field-wrap">
-              <i class="field-icon ph ph-lock-key" aria-hidden="true"></i>
-              <input
-                type="password"
-                id="inputPassword"
-                name="password"
-                autocomplete="current-password"
-                required
-                placeholder="Masukkan kata sandi"
-                class="login-input"
-              >
-              <button
-                type="button"
-                onclick="initTogglePassword()"
-                aria-label="Tampilkan kata sandi"
-                aria-controls="inputPassword"
-                aria-pressed="false"
-                id="btnTogglePassword"
-                class="password-toggle"
-              >
-                <i class="ph ph-eye text-xl" id="iconTogglePassword" aria-hidden="true"></i>
-              </button>
-            </div>
-          </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Password</label>
+        <div class="relative">
+          <input type="password" id="password" required autocomplete="current-password" placeholder="••••••••"
+            class="field-input pl-11 pr-11">
+          <i class="ph-bold ph-lock-key absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
+          <button type="button" onclick="togglePasswordVisibility()"
+            class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+            <i id="eyeIcon" class="ph-bold ph-eye"></i>
+          </button>
         </div>
+      </div>
 
-        <button type="submit" id="btnLogin" class="primary-button">
-          <span id="btnLoginContent">Masuk ke akun</span>
-          <i class="ph ph-arrow-right text-lg" id="btnLoginIcon" aria-hidden="true"></i>
-        </button>
-      </form>
+      <button type="submit" id="btnSubmit"
+        class="w-full mt-2 h-12 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-blue-500/25 transition-all flex items-center justify-center gap-2">
+        <span>Masuk ke Dashboard</span>
+        <i class="ph-bold ph-arrow-right"></i>
+      </button>
+    </form>
 
-      <footer class="mt-7 border-t border-slate-100 pt-5">
-        <p class="security-note">
-          <i class="ph ph-shield-check text-base text-emerald-600" aria-hidden="true"></i>
-          Gunakan akun Anda sendiri dan jangan bagikan kata sandi.
-        </p>
-      </footer>
+    <!-- Cloud / Sheets Status & Quick Config -->
+    <div class="mt-8 pt-6 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+      <div class="flex items-center gap-1.5" id="apiStatus">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span id="apiStatusText">Siap digunakan</span>
+      </div>
+      <button onclick="toggleConfigModal()" class="text-blue-600 hover:underline font-semibold flex items-center gap-1">
+        <i class="ph-bold ph-gear"></i> Konfigurasi DB
+      </button>
     </div>
-  </main>
+  </div>
+
+  <!-- Modal Konfigurasi DB URL -->
+  <div id="modalConfig" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+          <i class="ph-fill ph-database text-blue-600"></i> Hubungkan Google Sheets & Drive
+        </h3>
+        <button onclick="toggleConfigModal()" class="text-slate-400 hover:text-slate-600">
+          <i class="ph-bold ph-x text-lg"></i>
+        </button>
+      </div>
+      <p class="text-xs text-slate-500 mb-4 leading-relaxed">
+        Masukkan URL <strong>Web App Google Apps Script</strong> hasil deploy Spreadsheet Anda. Data akan otomatis tersimpan langsung ke Google Spreadsheet & Drive Anda secara live saat deploy ke GitHub Pages!
+      </p>
+
+      <div class="mb-4">
+        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Google Apps Script Web App URL</label>
+        <input type="url" id="configApiUrl" placeholder="https://script.google.com/macros/s/.../exec"
+          class="field-input text-xs font-mono">
+        <p class="text-[11px] text-slate-400 mt-1">Kosongkan jika ingin menggunakan penyimpanan lokal di browser (demo/offline).</p>
+      </div>
+
+      <div class="flex justify-end gap-2">
+        <button onclick="toggleConfigModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100">Batal</button>
+        <button onclick="saveApiConfig()" class="px-5 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white hover:bg-blue-700">Simpan Koneksi</button>
+      </div>
+    </div>
+  </div>
 
   <script>
-    function initTogglePassword() {
-      const input = document.getElementById('inputPassword');
-      const icon = document.getElementById('iconTogglePassword');
-      const btn = document.getElementById('btnTogglePassword');
-      const show = input.type === 'password';
-
-      input.type = show ? 'text' : 'password';
-      icon.classList.toggle('ph-eye', !show);
-      icon.classList.toggle('ph-eye-slash', show);
-      btn.setAttribute('aria-label', show ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi');
-      btn.setAttribute('aria-pressed', String(show));
+    // Cek apakah sudah login sebelumnya
+    const auth = AppStorage.getAuth();
+    if (auth && auth.isLoggedIn) {
+      window.location.replace('dashboard.html');
     }
 
-    function initShowLoginError(message) {
-      const alert = document.getElementById('loginAlert');
-      document.getElementById('loginAlertText').textContent =
-        message || 'Login belum berhasil. Periksa kembali data Anda.';
-      alert.hidden = false;
+    // Update status API
+    function updateStatusUI() {
+      const isConnected = PinjamanAPI.isApiConnected();
+      const statusText = document.getElementById('apiStatusText');
+      if (isConnected) {
+        statusText.textContent = "Google Sheets & Drive Aktif";
+        statusText.previousElementSibling.className = "w-2 h-2 rounded-full bg-emerald-500";
+      } else {
+        statusText.textContent = "Mode Mandiri (Local Storage)";
+        statusText.previousElementSibling.className = "w-2 h-2 rounded-full bg-amber-500";
+      }
+    }
+    updateStatusUI();
+
+    function togglePasswordVisibility() {
+      const pwd = document.getElementById('password');
+      const icon = document.getElementById('eyeIcon');
+      if (pwd.type === 'password') {
+        pwd.type = 'text';
+        icon.className = 'ph-bold ph-eye-slash';
+      } else {
+        pwd.type = 'password';
+        icon.className = 'ph-bold ph-eye';
+      }
     }
 
-    function initHideLoginError() {
-      const alert = document.getElementById('loginAlert');
-      alert.hidden = true;
-      document.getElementById('loginAlertText').textContent = '';
+    function toggleConfigModal() {
+      const modal = document.getElementById('modalConfig');
+      modal.classList.toggle('hidden');
+      if (!modal.classList.contains('hidden')) {
+        document.getElementById('configApiUrl').value = AppStorage.getApiUrl();
+      }
     }
 
-    function initSubmitLogin(e) {
+    function saveApiConfig() {
+      const url = document.getElementById('configApiUrl').value.trim();
+      AppStorage.setApiUrl(url);
+      toggleConfigModal();
+      updateStatusUI();
+      showAlert('Pengaturan koneksi Google Sheets & Drive berhasil diperbarui!', 'success');
+    }
+
+    async function handleLogin(e) {
       e.preventDefault();
-      initHideLoginError();
-
-      const btn = document.getElementById('btnLogin');
-      const content = document.getElementById('btnLoginContent');
-      const icon = document.getElementById('btnLoginIcon');
-      const username = document.getElementById('inputUsername').value.trim();
-      const password = document.getElementById('inputPassword').value;
-      const originalLabel = content.textContent;
-      const originalIconClass = icon.className;
+      const btn = document.getElementById('btnSubmit');
+      const alertBox = document.getElementById('loginAlert');
+      const user = document.getElementById('username').value.trim();
+      const pass = document.getElementById('password').value;
 
       btn.disabled = true;
-      btn.setAttribute('aria-busy', 'true');
-      content.textContent = 'Memverifikasi...';
-      icon.className = 'ph ph-spinner-gap animate-spin text-lg';
-      document.getElementById('inputUsername').setAttribute('aria-invalid', 'false');
-      document.getElementById('inputPassword').setAttribute('aria-invalid', 'false');
+      btn.innerHTML = '<i class="ph ph-spinner-gap animate-spin"></i> Memeriksa...';
+      alertBox.classList.add('hidden');
 
-      let completed = false;
-      const resetButton = () => {
-        if (completed) return;
-        completed = true;
-        btn.disabled = false;
-        btn.removeAttribute('aria-busy');
-        content.textContent = originalLabel;
-        icon.className = originalIconClass;
-      };
+      // Validasi kredensial bawaan proyek
+      const validUser = 'nunuanugraha';
+      const validPass = 'p@ssword123!';
 
-      if (!window.google || !google.script || !google.script.run) {
-        initShowLoginError('Layanan login tidak tersedia. Buka halaman ini melalui aplikasi PinjamanKu yang resmi.');
-        resetButton();
-        return;
-      }
+      setTimeout(() => {
+        if (user.toLowerCase() === validUser.toLowerCase() && (pass === validPass || pass === 'p\\@ssword123!')) {
+          AppStorage.setAuth({
+            isLoggedIn: true,
+            username: user,
+            name: 'Nunu Anugraha',
+            loginTime: new Date().toISOString()
+          });
 
-      google.script.run
-        .withSuccessHandler(function(response) {
-          if (!response || response.success !== true) {
-            initShowLoginError(response && response.message
-              ? response.message
-              : 'Nama pengguna atau kata sandi tidak sesuai.');
-            resetButton();
-            return;
-          }
+          alertBox.className = 'mb-5 p-3.5 rounded-xl text-xs font-semibold flex items-center gap-2 bg-emerald-50 text-emerald-700 border border-emerald-100';
+          alertBox.innerHTML = '<i class="ph-fill ph-check-circle text-lg"></i> Berhasil masuk! Mengalihkan ke dashboard...';
+          alertBox.classList.remove('hidden');
 
-          if (response.redirectUrl) {
-            window.top.location.href = response.redirectUrl;
-          } else {
-            initShowLoginError('Login berhasil, tetapi alamat tujuan belum tersedia. Hubungi administrator.');
-            resetButton();
-          }
-        })
-        .withFailureHandler(function() {
-          initShowLoginError('Tidak bisa terhubung ke server. Periksa koneksi Anda lalu coba lagi.');
-          resetButton();
-        })
-        .verifikasiLogin(username, password);
+          setTimeout(() => {
+            window.location.replace('dashboard.html');
+          }, 800);
+        } else {
+          alertBox.className = 'mb-5 p-3.5 rounded-xl text-xs font-semibold flex items-center gap-2 bg-rose-50 text-rose-700 border border-rose-100';
+          alertBox.innerHTML = '<i class="ph-fill ph-x-circle text-lg"></i> Username atau Password salah! Periksa kembali.';
+          alertBox.classList.remove('hidden');
+          btn.disabled = false;
+          btn.innerHTML = '<span>Masuk ke Dashboard</span><i class="ph-bold ph-arrow-right"></i>';
+        }
+      }, 500);
     }
   </script>
 </body>

@@ -1,74 +1,306 @@
-<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Kalkulator | PinjamanKu</title><script src="https://cdn.tailwindcss.com"></script><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"><script src="https://unpkg.com/@phosphor-icons/web"></script><style>*{box-sizing:border-box}body{font-family:Inter,sans-serif;background:radial-gradient(ellipse at 10% 0%,#dbeafe,transparent 34%),#f4f7fb;color:#172033}.panel{background:white;border:1px solid #e5eaf2;border-radius:22px;box-shadow:0 12px 35px -26px #33415555}.field{width:100%;border:1px solid #dce4ef;background:#f8fafc;border-radius:12px;padding:13px 14px;outline:none}.field:focus{border-color:#4775ee;background:white;box-shadow:0 0 0 3px #315cf51a}.tab{padding:12px 17px;border-radius:12px;font-size:14px;font-weight:700;color:#64748b}.tab.active{background:#315cf5;color:white}.key{height:58px;border-radius:14px;background:#f1f5f9;font-size:20px;font-weight:700;transition:.15s}.key:hover{background:#e2e8f0}.key.op{background:#eaf0ff;color:#315cf5}.key.equal{background:#315cf5;color:white}.result{background:linear-gradient(135deg,#1e40af,#315cf5);color:white;border-radius:18px}</style></head><body class="min-h-screen p-4 md:p-8"><div class="max-w-6xl mx-auto"><header class="panel p-5 md:p-6 flex flex-wrap items-center justify-between gap-4"><div class="flex items-center gap-3"><div class="w-12 h-12 rounded-2xl bg-violet-100 text-violet-700 grid place-items-center text-2xl"><i class="ph-fill ph-calculator"></i></div><div><h1 class="text-2xl font-extrabold">Kalkulator</h1><p class="text-sm text-slate-500">Hitung keuntungan pinjaman dan perhitungan harian.</p></div></div><button onclick="go('dashboard')" class="rounded-xl bg-slate-100 px-4 py-3 font-bold text-sm"><i class="ph-bold ph-squares-four mr-1"></i> Dashboard</button></header><div class="flex flex-wrap gap-2 mt-6"><button class="tab active" id="tabProfit" onclick="showTab('profit')"><i class="ph-bold ph-chart-line-up mr-1"></i> Kalkulator Keuntungan</button><button class="tab" id="tabBasic" onclick="showTab('basic')"><i class="ph-bold ph-calculator mr-1"></i> Kalkulator Biasa</button></div>
-<section id="profit" class="panel p-5 md:p-7 mt-4"><div class="grid grid-cols-1 lg:grid-cols-2 gap-8"><div><h2 class="text-xl font-extrabold">Simulasi keuntungan pinjaman</h2><p class="text-sm text-slate-500 mt-1 mb-6">Masukkan modal dan bunga untuk melihat estimasi hasil pinjaman.</p><label class="block text-sm font-bold mb-2">Nominal modal / pinjaman (Rp)</label><input id="principal" class="field mb-4" type="text" inputmode="numeric" autocomplete="off" value="1.000.000" oninput="formatNominal(this);calcProfit()"><label class="block text-sm font-bold mb-2">Bunga per periode (%)</label><input id="rate" class="field mb-4" type="number" min="0" step="0.1" value="30" oninput="calcProfit()"><label class="block text-sm font-bold mb-2">Jumlah periode</label><input id="period" class="field mb-4" type="number" min="1" step="1" value="1" oninput="calcProfit()"><label class="block text-sm font-bold mb-2">Jenis perhitungan</label><select id="method" class="field" onchange="calcProfit()"><option value="simple">Bunga tetap (flat)</option><option value="compound">Bunga berbunga (majemuk)</option></select><p class="text-xs text-slate-400 mt-3">Simulasi ini tidak mengubah data pinjaman. Gunakan hasil sebagai estimasi.</p></div><div class="result p-6 md:p-8 flex flex-col justify-center"><span class="text-sm text-blue-100 font-semibold">Estimasi keuntungan bunga</span><strong id="profitValue" class="text-3xl md:text-4xl font-extrabold mt-2">Rp300.000</strong><div class="h-px bg-white/20 my-6"></div><div class="flex justify-between gap-3 text-sm"><span class="text-blue-100">Modal awal</span><b id="principalValue">Rp1.000.000</b></div><div class="flex justify-between gap-3 text-sm mt-3"><span class="text-blue-100">Total bunga</span><b id="interestValue">Rp300.000</b></div><div class="flex justify-between gap-3 text-sm mt-3"><span class="text-blue-100">Total pengembalian</span><b id="totalValue">Rp1.300.000</b></div><div class="mt-6 rounded-xl bg-white/10 p-4"><span class="text-xs text-blue-100">Persentase keuntungan terhadap modal</span><b id="marginValue" class="block text-2xl mt-1">30%</b></div></div></div></section>
-<section id="basic" class="panel p-5 md:p-7 mt-4 hidden"><div class="max-w-md mx-auto"><h2 class="text-xl font-extrabold">Kalkulator biasa</h2><p class="text-sm text-slate-500 mt-1 mb-5">Operasi matematika dasar dengan tampilan sederhana.</p><div class="rounded-2xl bg-slate-900 p-4 mb-3"><div id="expression" class="text-right text-slate-400 text-sm h-6 break-all"></div><div id="display" class="text-right text-white text-3xl font-bold min-h-12 break-all">0</div></div><div class="grid grid-cols-4 gap-2" id="keys"></div></div></section><footer class="text-center text-xs text-slate-400 py-8">PinjamanKu · Kalkulator Keuangan</footer></div><script>
-const BASE_APP_URL="<?= BASE_APP_URL ?>";
-const AUTH_TOKEN="<?= AUTH_TOKEN ?>";
-function go(p){location.href=BASE_APP_URL+'?page='+p+'&session='+encodeURIComponent(AUTH_TOKEN)}
-function rupiah(n){return new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(Number.isFinite(n)?n:0)}
-function parseNominal(value){return Number(String(value||'').replace(/\D/g,''))||0}
-function formatNominal(input){
-  const old=input.value, pos=input.selectionStart??old.length;
-  const digitsBefore=(old.slice(0,pos).match(/\d/g)||[]).length;
-  const digits=old.replace(/\D/g,'');
-  const formatted=digits?new Intl.NumberFormat('id-ID',{maximumFractionDigits:0}).format(Number(digits)) : '';
-  input.value=formatted;
-  let newPos=0, seen=0;
-  while(newPos<formatted.length && seen<digitsBefore){if(/\d/.test(formatted[newPos]))seen++;newPos++;}
-  try{input.setSelectionRange(newPos,newPos)}catch(e){}
-}
-function calcProfit(){
-  const p=parseNominal(document.getElementById('principal').value);
-  let r=Math.max(0,Number(document.getElementById('rate').value)||0)/100;
-  let n=Math.max(1,Math.floor(Number(document.getElementById('period').value)||1));
-  let compound=document.getElementById('method').value==='compound';
-  let total=compound?p*Math.pow(1+r,n):p*(1+r*n),interest=total-p;
-  document.getElementById('profitValue').textContent=rupiah(interest);
-  document.getElementById('principalValue').textContent=rupiah(p);
-  document.getElementById('interestValue').textContent=rupiah(interest);
-  document.getElementById('totalValue').textContent=rupiah(total);
-  document.getElementById('marginValue').textContent=(p?((interest/p)*100):0).toLocaleString('id-ID',{maximumFractionDigits:2})+'%';
-}
-function showTab(t){['profit','basic'].forEach(x=>document.getElementById(x).classList.toggle('hidden',x!==t));document.getElementById('tabProfit').classList.toggle('active',t==='profit');document.getElementById('tabBasic').classList.toggle('active',t==='basic')}
-let current='0',stored=null,operator=null,reset=false;
-const keys=[['AC','clear'],['±','sign'],['%','percent'],['÷','/'],['7','7'],['8','8'],['9','9'],['×','*'],['4','4'],['5','5'],['6','6'],['−','-'],['1','1'],['2','2'],['3','3'],['+','+'],['0','0'],['.','.'],['⌫','back'],['=','=']];
-document.getElementById('keys').innerHTML=keys.map(([label,v])=>`<button class="key ${['/','*','-','+'].includes(v)?'op':''} ${v==='='?'equal':''}" data-key="${v}">${label}</button>`).join('');
-function formatCalcNumber(value){
-  if(value==='Error')return value;
-  let s=String(value), sign=s.startsWith('-')?'-':'';
-  if(sign)s=s.slice(1);
-  let parts=s.split('.');
-  let integer=parts[0]||'0';
-  integer=integer.replace(/\B(?=(\d{3})+(?!\d))/g,'.');
-  return sign+integer+(parts.length>1?','+parts.slice(1).join(''): '');
-}
-function update(){
-  document.getElementById('display').textContent=formatCalcNumber(current);
-  document.getElementById('expression').textContent=stored!==null?formatCalcNumber(stored)+' '+(operator||''):'';
-}
-function calculate(){
-  let a=Number(stored),b=Number(current),v=operator==='+'?a+b:operator==='-'?a-b:operator==='*'?a*b:operator==='/'?(b===0?NaN:a/b):b;
-  current=Number.isFinite(v)?String(Number(v.toPrecision(12))):'Error';
-  stored=null;operator=null;reset=true;update();
-}
-document.getElementById('keys').addEventListener('click',e=>{
-  let v=e.target.closest('button')?.dataset.key;if(!v)return;
-  if(v==='clear'){current='0';stored=null;operator=null;reset=false}
-  else if(v==='back'){current=current.length>1?current.slice(0,-1):'0';if(current==='-')current='0'}
-  else if(v==='sign'){if(current!=='0'&&current!=='Error')current=current.startsWith('-')?current.slice(1):'-'+current}
-  else if(v==='percent'){
-    let value=Number(current);
-    if(stored!==null&&operator){
-      const base=Number(stored);
-      current=String((operator==='+'||operator==='-')?base*value/100:value/100);
-    }else current=String(value/100);
-    reset=false;
-  }
-  else if(['+','-','*','/'].includes(v)){if(stored!==null&&!reset)calculate();stored=current;operator=v;reset=true}
-  else if(v==='='){if(operator!==null)calculate()}
-  else if(v==='.'){if(reset){current='0.';reset=false}else if(!current.includes('.'))current+='.'}
-  else{if(reset||current==='0'||current==='Error'){current=v;reset=false}else if(current.replace('-','').replace('.','').length<15)current+=v}
-  update();
-});
-document.addEventListener('keydown',e=>{if(document.getElementById('basic').classList.contains('hidden'))return;let k=e.key;if(/[0-9.]/.test(k))document.querySelector(`[data-key="${k}"]`)?.click();else if(k==='Enter'||k==='=')document.querySelector('[data-key="="]').click();else if(k==='Backspace')document.querySelector('[data-key="back"]').click();else if(k==='Escape')document.querySelector('[data-key="clear"]').click();else if(['+','-','*','/'].includes(k))document.querySelector(`[data-key="${k}"]`)?.click()});
-formatNominal(document.getElementById('principal'));calcProfit();update();
-</script></body></html>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kalkulator | PinjamanKu</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <script src="app.js"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(ellipse at 10% 0%, #dbeafe 0%, transparent 34%), #f4f7fb;
+      color: #172033;
+      -webkit-font-smoothing: antialiased;
+    }
+    .panel {
+      background: white;
+      border: 1px solid #e5eaf2;
+      border-radius: 22px;
+      box-shadow: 0 12px 35px -26px rgba(51, 65, 85, 0.35);
+    }
+    .field {
+      width: 100%;
+      border: 1px solid #dce4ef;
+      background: #f8fafc;
+      border-radius: 14px;
+      padding: 12px 16px;
+      outline: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all .2s;
+    }
+    .field:focus {
+      border-color: #315cf5;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(49, 92, 245, 0.12);
+    }
+    .tab {
+      padding: 10px 18px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #64748b;
+      transition: all .18s;
+    }
+    .tab.active {
+      background: #315cf5;
+      color: white;
+      box-shadow: 0 4px 12px rgba(49, 92, 245, 0.25);
+    }
+    .key {
+      height: 54px;
+      border-radius: 14px;
+      background: #f1f5f9;
+      font-size: 18px;
+      font-weight: 700;
+      transition: all .15s;
+    }
+    .key:hover { background: #e2e8f0; }
+    .key.op { background: #eaf0ff; color: #315cf5; }
+    .key.equal { background: #315cf5; color: white; }
+    .result-card {
+      background: linear-gradient(135deg, #1e40af, #315cf5);
+      color: white;
+      border-radius: 20px;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen p-4 md:p-8">
+  <div class="max-w-5xl mx-auto space-y-6">
+    <!-- Header -->
+    <header class="panel p-5 md:p-6 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-2xl bg-violet-100 text-violet-700 grid place-items-center text-2xl">
+          <i class="ph-fill ph-calculator"></i>
+        </div>
+        <div>
+          <h1 class="text-2xl font-extrabold text-slate-800">Kalkulator Keuangan</h1>
+          <p class="text-xs text-slate-500">Hitung proyeksi keuntungan bunga pinjaman dan kalkulator harian.</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <a href="dashboard.html" class="rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 font-bold text-xs flex items-center gap-1.5 transition-colors">
+          <i class="ph-bold ph-squares-four"></i> Dashboard
+        </a>
+      </div>
+    </header>
+
+    <!-- Tab Nav -->
+    <div class="flex flex-wrap gap-2">
+      <button class="tab active" id="tabProfit" onclick="showTab('profit')">
+        <i class="ph-bold ph-chart-line-up mr-1.5"></i> Simulasi Keuntungan Pinjaman
+      </button>
+      <button class="tab" id="tabBasic" onclick="showTab('basic')">
+        <i class="ph-bold ph-calculator mr-1.5"></i> Kalkulator Angka Standar
+      </button>
+    </div>
+
+    <!-- Section Profit Calculator -->
+    <section id="profit" class="panel p-6 md:p-8">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div>
+          <h2 class="text-lg font-extrabold text-slate-800">Parameter Pinjaman</h2>
+          <p class="text-xs text-slate-500 mt-1 mb-6">Atur nominal pinjaman pokok, bunga per periode, dan durasi.</p>
+
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Nominal Pinjaman / Pokok (Rp)</label>
+              <input id="principal" class="field" type="text" inputmode="numeric" value="1.000.000" oninput="Utils.formatInputRibuan(this);calcProfit()">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Bunga per Periode (%)</label>
+              <input id="rate" class="field" type="number" min="0" step="0.5" value="30" oninput="calcProfit()">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Jumlah Periode / Siklus</label>
+              <input id="period" class="field" type="number" min="1" step="1" value="1" oninput="calcProfit()">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Skema Bunga</label>
+              <select id="method" class="field" onchange="calcProfit()">
+                <option value="simple">Bunga Tetap / Flat (Standard PinjamanKu)</option>
+                <option value="compound">Bunga Berbunga / Majemuk</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="mt-6 p-3.5 rounded-xl bg-slate-50 border border-slate-100 flex items-start gap-2 text-xs text-slate-500">
+            <i class="ph-fill ph-info text-blue-600 text-base mt-0.5 shrink-0"></i>
+            <span>Simulasi ini membantu menghitung potensi imbal hasil. Standar aturan PinjamanKu menggunakan bunga flat 30% per periode jatuh tempo.</span>
+          </div>
+        </div>
+
+        <div class="result-card p-6 md:p-8 flex flex-col justify-between shadow-xl shadow-blue-500/10">
+          <div>
+            <span class="text-xs uppercase tracking-wider font-bold text-blue-200">Estimasi Keuntungan Bunga</span>
+            <strong id="profitValue" class="text-3xl md:text-4xl font-extrabold block mt-2 text-white">Rp300.000</strong>
+          </div>
+
+          <div class="space-y-3.5 my-6">
+            <div class="h-px bg-white/20"></div>
+            <div class="flex justify-between items-center text-sm">
+              <span class="text-blue-100">Modal Pokok</span>
+              <b id="principalValue" class="font-bold text-white">Rp1.000.000</b>
+            </div>
+            <div class="flex justify-between items-center text-sm">
+              <span class="text-blue-100">Total Bunga Didapat</span>
+              <b id="interestValue" class="font-bold text-white">Rp300.000</b>
+            </div>
+            <div class="flex justify-between items-center text-sm">
+              <span class="text-blue-100">Total Yang Diterima</span>
+              <b id="totalValue" class="font-bold text-emerald-300 text-base">Rp1.300.000</b>
+            </div>
+            <div class="h-px bg-white/20"></div>
+          </div>
+
+          <div class="rounded-xl bg-white/10 p-4 border border-white/10">
+            <span class="text-xs text-blue-200 uppercase font-semibold">Persentase Margin Keuntungan</span>
+            <b id="marginValue" class="block text-2xl font-black text-white mt-0.5">30%</b>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section Basic Calculator -->
+    <section id="basic" class="panel p-6 md:p-8 hidden">
+      <div class="max-w-xs mx-auto">
+        <div class="text-center mb-4">
+          <h2 class="text-lg font-extrabold text-slate-800">Kalkulator Biasa</h2>
+          <p class="text-xs text-slate-400">Operasi matematika cepat</p>
+        </div>
+
+        <div class="rounded-2xl bg-slate-900 p-4 mb-4 shadow-inner">
+          <div id="expression" class="text-right text-slate-400 text-xs h-5 break-all"></div>
+          <div id="display" class="text-right text-white text-3xl font-bold min-h-10 break-all">0</div>
+        </div>
+
+        <div class="grid grid-cols-4 gap-2" id="keys"></div>
+      </div>
+    </section>
+
+    <footer class="text-center text-xs text-slate-400 py-6">
+      PinjamanKu &middot; Financial Productivity Calculator
+    </footer>
+  </div>
+
+  <script>
+    AppStorage.checkAuth();
+
+    function showTab(t) {
+      document.getElementById('profit').classList.toggle('hidden', t !== 'profit');
+      document.getElementById('basic').classList.toggle('hidden', t !== 'basic');
+      document.getElementById('tabProfit').classList.toggle('active', t === 'profit');
+      document.getElementById('tabBasic').classList.toggle('active', t === 'basic');
+    }
+
+    function calcProfit() {
+      const p = Utils.parseAngka(document.getElementById('principal').value);
+      const r = Math.max(0, Number(document.getElementById('rate').value) || 0) / 100;
+      const n = Math.max(1, Math.floor(Number(document.getElementById('period').value) || 1));
+      const compound = document.getElementById('method').value === 'compound';
+
+      const total = compound ? p * Math.pow(1 + r, n) : p * (1 + (r * n));
+      const interest = total - p;
+
+      document.getElementById('profitValue').textContent = Utils.formatRupiah(interest);
+      document.getElementById('principalValue').textContent = Utils.formatRupiah(p);
+      document.getElementById('interestValue').textContent = Utils.formatRupiah(interest);
+      document.getElementById('totalValue').textContent = Utils.formatRupiah(total);
+      document.getElementById('marginValue').textContent = (p ? ((interest / p) * 100) : 0).toLocaleString('id-ID', { maximumFractionDigits: 2 }) + '%';
+    }
+
+    // Basic Calculator Engine
+    let current = '0', stored = null, operator = null, reset = false;
+    const keys = [
+      ['AC', 'clear'], ['±', 'sign'], ['%', 'percent'], ['÷', '/'],
+      ['7', '7'], ['8', '8'], ['9', '9'], ['×', '*'],
+      ['4', '4'], ['5', '5'], ['6', '6'], ['−', '-'],
+      ['1', '1'], ['2', '2'], ['3', '3'], ['+', '+'],
+      ['0', '0'], ['.', '.'], ['⌫', 'back'], ['=', '=']
+    ];
+
+    document.getElementById('keys').innerHTML = keys.map(([label, v]) => `
+      <button class="key ${['/', '*', '-', '+'].includes(v) ? 'op' : ''} ${v === '=' ? 'equal' : ''}" data-key="${v}">${label}</button>
+    `).join('');
+
+    function formatCalcNumber(value) {
+      if (value === 'Error') return value;
+      let s = String(value), sign = s.startsWith('-') ? '-' : '';
+      if (sign) s = s.slice(1);
+      let parts = s.split('.');
+      let integer = parts[0] || '0';
+      integer = integer.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+      return sign + integer + (parts.length > 1 ? ',' + parts.slice(1).join('') : '');
+    }
+
+    function updateCalc() {
+      document.getElementById('display').textContent = formatCalcNumber(current);
+      document.getElementById('expression').textContent = stored !== null ? formatCalcNumber(stored) + ' ' + (operator || '') : '';
+    }
+
+    function calculate() {
+      let a = Number(stored), b = Number(current);
+      let v = operator === '+' ? a + b : operator === '-' ? a - b : operator === '*' ? a * b : operator === '/' ? (b === 0 ? NaN : a / b) : b;
+      current = Number.isFinite(v) ? String(Number(v.toPrecision(12))) : 'Error';
+      stored = null; operator = null; reset = true;
+      updateCalc();
+    }
+
+    document.getElementById('keys').addEventListener('click', e => {
+      let v = e.target.closest('button')?.dataset.key;
+      if (!v) return;
+
+      if (v === 'clear') { current = '0'; stored = null; operator = null; reset = false; }
+      else if (v === 'back') { current = current.length > 1 ? current.slice(0, -1) : '0'; if (current === '-') current = '0'; }
+      else if (v === 'sign') { if (current !== '0' && current !== 'Error') current = current.startsWith('-') ? current.slice(1) : '-' + current; }
+      else if (v === 'percent') {
+        let value = Number(current);
+        if (stored !== null && operator) {
+          const base = Number(stored);
+          current = String((operator === '+' || operator === '-') ? base * value / 100 : value / 100);
+        } else current = String(value / 100);
+        reset = false;
+      }
+      else if (['+', '-', '*', '/'].includes(v)) {
+        if (stored !== null && !reset) calculate();
+        stored = current; operator = v; reset = true;
+      }
+      else if (v === '=') { if (operator !== null) calculate(); }
+      else if (v === '.') {
+        if (reset) { current = '0.'; reset = false; }
+        else if (!current.includes('.')) current += '.';
+      }
+      else {
+        if (reset || current === '0' || current === 'Error') { current = v; reset = false; }
+        else if (current.replace('-', '').replace('.', '').length < 15) current += v;
+      }
+      updateCalc();
+    });
+
+    document.addEventListener('keydown', e => {
+      if (document.getElementById('basic').classList.contains('hidden')) return;
+      let k = e.key;
+      if (/[0-9.]/.test(k)) document.querySelector(`[data-key="${k}"]`)?.click();
+      else if (k === 'Enter' || k === '=') document.querySelector('[data-key="="]')?.click();
+      else if (k === 'Backspace') document.querySelector('[data-key="back"]')?.click();
+      else if (k === 'Escape') document.querySelector('[data-key="clear"]')?.click();
+      else if (['+', '-', '*', '/'].includes(k)) document.querySelector(`[data-key="${k}"]`)?.click();
+    });
+
+    Utils.formatInputRibuan(document.getElementById('principal'));
+    calcProfit();
+    updateCalc();
+  </script>
+</body>
+</html>

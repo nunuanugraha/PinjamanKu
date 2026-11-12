@@ -1,11 +1,359 @@
 <!DOCTYPE html>
-<html lang="id"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PinjamanKu Dashboard</title>
-<script src="https://cdn.tailwindcss.com"></script><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"><script src="https://unpkg.com/@phosphor-icons/web"></script>
-<style>*{box-sizing:border-box}body{font-family:Inter,sans-serif;background:radial-gradient(ellipse at 8% 0%,#dbeafe 0,transparent 35%),radial-gradient(ellipse at 95% 100%,#d1fae5 0,transparent 30%),#f4f7fb;color:#172033}.panel{background:#fff;border:1px solid #e5eaf2;border-radius:22px;box-shadow:0 12px 35px -26px #33415555}.nav{display:flex;align-items:center;gap:10px;padding:12px 15px;border-radius:14px;font-weight:650;font-size:14px;transition:.2s}.nav:hover{background:#eef3ff;color:#315cf5}.metric{min-width:0}.metric p{color:#64748b;font-size:12px;font-weight:650}.metric strong{display:block;font-size:clamp(18px,2vw,25px);letter-spacing:-.04em;margin-top:8px;overflow-wrap:anywhere}.action{display:flex;align-items:center;gap:14px;padding:18px;border:1px solid #e8edf5;border-radius:17px;background:#fff;transition:.2s}.action:hover{transform:translateY(-2px);border-color:#c7d5ff;box-shadow:0 12px 25px -20px #315cf5}.action i{font-size:24px}.muted{color:#64748b}</style></head>
-<body class="min-h-screen p-4 md:p-8"><div class="max-w-7xl mx-auto">
-<header class="panel p-5 md:p-7 flex flex-col lg:flex-row lg:items-center justify-between gap-5"><div class="flex items-center gap-4"><div class="w-14 h-14 rounded-2xl bg-blue-600 text-white grid place-items-center text-3xl shadow-lg shadow-blue-200"><i class="ph-fill ph-wallet"></i></div><div><div class="text-xs font-bold uppercase tracking-[.18em] text-blue-600">Pusat kendali keuangan</div><h1 class="text-2xl md:text-3xl font-extrabold tracking-tight mt-1">PinjamanKu</h1><p class="text-sm muted mt-1">Ringkasan dan akses cepat seluruh aktivitas keuanganmu.</p></div></div><div class="flex flex-wrap gap-2"><button onclick="go('pinjaman')" class="rounded-xl bg-blue-600 text-white px-5 py-3 font-bold text-sm"><i class="ph-bold ph-plus mr-1"></i> Pinjaman Baru</button><button onclick="logout()" class="rounded-xl bg-slate-100 text-slate-600 px-4 py-3 font-bold text-sm"><i class="ph-bold ph-sign-out mr-1"></i> Keluar</button></div></header>
-<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mt-6"><div class="panel p-5 metric"><div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 grid place-items-center text-xl"><i class="ph-fill ph-hand-coins"></i></div><p class="mt-4">Total Sisa Tagihan</p><strong id="outstanding">Memuat...</strong><span class="text-xs muted">Akumulasi tagihan yang belum lunas</span></div><div class="panel p-5 metric"><div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 grid place-items-center text-xl"><i class="ph-fill ph-chart-line-up"></i></div><p class="mt-4">Potensi Bunga</p><strong id="interest">Memuat...</strong><span class="text-xs muted">Bunga dari pinjaman yang masih aktif</span></div><div class="panel p-5 metric"><div class="w-10 h-10 rounded-xl bg-violet-50 text-violet-600 grid place-items-center text-xl"><i class="ph-fill ph-users-three"></i></div><p class="mt-4">Peminjam Aktif</p><strong id="borrowers">—</strong><span class="text-xs muted">Pinjaman dengan status belum lunas</span></div><div class="panel p-5 metric"><div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 grid place-items-center text-xl"><i class="ph-fill ph-warning-circle"></i></div><p class="mt-4">Terlambat</p><strong id="late">—</strong><span class="text-xs muted">Perlu segera ditindaklanjuti</span></div></div>
-<div class="grid grid-cols-1 lg:grid-cols-5 gap-5 mt-6"><section class="panel p-5 md:p-6 lg:col-span-3"><div class="flex justify-between items-center gap-3"><div><h2 class="font-extrabold text-lg">Akses cepat</h2><p class="text-sm muted mt-1">Pilih modul yang ingin kamu buka.</p></div><i class="ph-fill ph-squares-four text-2xl text-blue-500"></i></div><div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-5"><button class="action text-left" onclick="go('pinjaman')"><i class="ph-fill ph-users text-blue-600"></i><span><b class="block">Data Pinjaman</b><small class="muted">Kelola peminjam & pembayaran</small></span><i class="ph ph-arrow-up-right ml-auto text-slate-400"></i></button><button class="action text-left" onclick="go('tracker')"><i class="ph-fill ph-chart-line-up text-indigo-600"></i><span><b class="block">Money Tracker</b><small class="muted">Catat pemasukan & pengeluaran</small></span><i class="ph ph-arrow-up-right ml-auto text-slate-400"></i></button><button class="action text-left" onclick="go('kalkulator')"><i class="ph-fill ph-calculator text-violet-600"></i><span><b class="block">Kalkulator</b><small class="muted">Hitung angka & keuntungan</small></span><i class="ph ph-arrow-up-right ml-auto text-slate-400"></i></button><button class="action text-left" onclick="go('pinjaman')"><i class="ph-fill ph-clock-counter-clockwise text-amber-600"></i><span><b class="block">Riwayat Pembayaran</b><small class="muted">Lihat transaksi pembayaran</small></span><i class="ph ph-arrow-up-right ml-auto text-slate-400"></i></button></div></section>
-<section class="panel p-5 md:p-6 lg:col-span-2"><h2 class="font-extrabold text-lg">Perlu perhatian</h2><p class="text-sm muted mt-1">Pinjaman dengan tanggal jatuh tempo terdekat.</p><div id="attention" class="mt-4 space-y-3"><div class="text-sm muted">Memuat data pinjaman...</div></div><button onclick="go('pinjaman')" class="mt-5 w-full rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm py-3">Lihat semua pinjaman <i class="ph-bold ph-arrow-right ml-1"></i></button></section></div>
-<footer class="text-center text-xs text-slate-400 py-8">PinjamanKu · Kelola pinjaman dengan lebih teratur</footer></div>
-<script>const BASE_APP_URL="<?= BASE_APP_URL ?>";const AUTH_TOKEN="<?= AUTH_TOKEN ?>";function go(p){location.href=BASE_APP_URL+'?page='+p+'&session='+encodeURIComponent(AUTH_TOKEN)}function logout(){google.script.run.withSuccessHandler(()=>location.href=BASE_APP_URL).logoutSession(AUTH_TOKEN)}function rp(n){return new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(Number(n)||0)}function dateOnly(v){if(!v)return null;let d=new Date(String(v).slice(0,10)+'T00:00:00');return isNaN(d)?null:d}function render(data){data=data||[];let active=data.filter(x=>String(x.status).toLowerCase()!=='lunas');let outstanding=active.reduce((a,x)=>a+(Number(x.sisaTagihan)||0),0);let interest=active.reduce((a,x)=>a+(Number(x.bungaNominal)||0),0);let today=new Date();today.setHours(0,0,0,0);let late=active.filter(x=>{let d=dateOnly(x.jatuhTempo);return d&&d<today&&String(x.status)!=='Sudah Bayar Bunga'});document.getElementById('outstanding').textContent=rp(outstanding);document.getElementById('interest').textContent=rp(interest);document.getElementById('borrowers').textContent=active.length+' orang';document.getElementById('late').textContent=late.length+' pinjaman';let sorted=active.slice().sort((a,b)=>(dateOnly(a.jatuhTempo)||new Date(8640000000000000))-(dateOnly(b.jatuhTempo)||new Date(8640000000000000))).slice(0,4);let box=document.getElementById('attention');if(!sorted.length){box.innerHTML='<div class="rounded-xl bg-emerald-50 p-4 text-sm text-emerald-700 font-semibold"><i class="ph-fill ph-check-circle mr-1"></i> Belum ada pinjaman aktif.</div>';return}box.innerHTML=sorted.map(x=>{let d=dateOnly(x.jatuhTempo);let overdue=d&&d<today;return `<div class="flex items-center justify-between gap-3 border-b border-slate-100 pb-3"><div class="min-w-0"><b class="block truncate text-sm">${esc(x.nama||'Tanpa nama')}</b><small class="muted">Jatuh tempo ${d?d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}):'-'}</small></div><span class="text-xs font-bold px-2.5 py-1 rounded-full ${overdue?'bg-rose-50 text-rose-600':'bg-blue-50 text-blue-600'}">${overdue?'Terlambat':esc(x.status||'Aktif')}</span></div>`}).join('')}function esc(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}google.script.run.withSuccessHandler(render).withFailureHandler(e=>{document.getElementById('attention').textContent='Gagal memuat data: '+(e.message||e)}).getDataPinjaman();</script></body></html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PinjamanKu - Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <script src="app.js"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background:
+        radial-gradient(ellipse at 8% 0%, #dbeafe 0, transparent 35%),
+        radial-gradient(ellipse at 95% 100%, #d1fae5 0, transparent 30%),
+        #f4f7fb;
+      color: #172033;
+      -webkit-font-smoothing: antialiased;
+    }
+    .panel {
+      background: #ffffff;
+      border: 1px solid #e5eaf2;
+      border-radius: 22px;
+      box-shadow: 0 12px 35px -26px rgba(51, 65, 85, 0.35);
+    }
+    .action-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 18px;
+      border: 1px solid #e8edf5;
+      border-radius: 18px;
+      background: #ffffff;
+      transition: all .2s ease;
+      cursor: pointer;
+    }
+    .action-card:hover {
+      transform: translateY(-2px);
+      border-color: #c7d5ff;
+      box-shadow: 0 12px 25px -20px #315cf5;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen p-4 md:p-8">
+  <div class="max-w-7xl mx-auto space-y-6">
+    <!-- Header -->
+    <header class="panel p-5 md:p-7 flex flex-col md:flex-row md:items-center justify-between gap-5">
+      <div class="flex items-center gap-4">
+        <div class="w-14 h-14 rounded-2xl bg-blue-600 text-white grid place-items-center text-3xl shadow-lg shadow-blue-500/25">
+          <i class="ph-fill ph-wallet"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold uppercase tracking-wider text-blue-600">Pusat Kendali Keuangan</span>
+            <span id="badgeApi" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">Menghubungkan...</span>
+          </div>
+          <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight mt-1 text-slate-800">PinjamanKu</h1>
+          <p class="text-sm text-slate-500 mt-0.5">Ringkasan dan kendali seluruh aktivitas pinjaman & transaksi kas.</p>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2.5">
+        <a href="pinjaman.html" class="rounded-xl bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 font-bold text-sm shadow-md shadow-blue-500/20 transition-all flex items-center gap-1.5">
+          <i class="ph-bold ph-plus"></i> Pinjaman Baru
+        </a>
+        <button onclick="openConfigModal()" class="rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-3.5 py-2.5 font-bold text-sm transition-all flex items-center gap-1.5" title="Koneksi Google Spreadsheet & Drive">
+          <i class="ph-bold ph-gear"></i> <span class="hidden sm:inline">Set DB</span>
+        </button>
+        <button onclick="handleLogout()" class="rounded-xl bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-600 px-3.5 py-2.5 font-bold text-sm transition-all flex items-center gap-1.5">
+          <i class="ph-bold ph-sign-out"></i> Keluar
+        </button>
+      </div>
+    </header>
+
+    <!-- Metrik Statistik Utama -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="panel p-5">
+        <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 grid place-items-center text-xl">
+          <i class="ph-fill ph-hand-coins"></i>
+        </div>
+        <p class="text-xs font-bold uppercase tracking-wider text-slate-400 mt-4">Total Sisa Tagihan</p>
+        <strong id="outstanding" class="block text-2xl font-extrabold text-slate-800 mt-1">Rp0</strong>
+        <span class="text-xs text-slate-400">Akumulasi pokok & bunga belum lunas</span>
+      </div>
+
+      <div class="panel p-5">
+        <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 grid place-items-center text-xl">
+          <i class="ph-fill ph-chart-line-up"></i>
+        </div>
+        <p class="text-xs font-bold uppercase tracking-wider text-slate-400 mt-4">Potensi Bunga</p>
+        <strong id="interest" class="block text-2xl font-extrabold text-slate-800 mt-1">Rp0</strong>
+        <span class="text-xs text-slate-400">Total bunga pinjaman aktif</span>
+      </div>
+
+      <div class="panel p-5">
+        <div class="w-10 h-10 rounded-xl bg-violet-50 text-violet-600 grid place-items-center text-xl">
+          <i class="ph-fill ph-users-three"></i>
+        </div>
+        <p class="text-xs font-bold uppercase tracking-wider text-slate-400 mt-4">Peminjam Aktif</p>
+        <strong id="borrowers" class="block text-2xl font-extrabold text-slate-800 mt-1">0 orang</strong>
+        <span class="text-xs text-slate-400">Pinjaman dalam status berjalan</span>
+      </div>
+
+      <div class="panel p-5">
+        <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 grid place-items-center text-xl">
+          <i class="ph-fill ph-warning-circle"></i>
+        </div>
+        <p class="text-xs font-bold uppercase tracking-wider text-slate-400 mt-4">Jatuh Tempo / Terlambat</p>
+        <strong id="late" class="block text-2xl font-extrabold text-slate-800 mt-1">0 pinjaman</strong>
+        <span class="text-xs text-slate-400">Perlu segera ditagih / diperhatikan</span>
+      </div>
+    </div>
+
+    <!-- Modul Akses Cepat & Perhatian -->
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+      <!-- Akses Cepat -->
+      <section class="panel p-6 lg:col-span-3">
+        <div class="flex justify-between items-center mb-5">
+          <div>
+            <h2 class="font-extrabold text-lg text-slate-800">Modul Aplikasi</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Navigasi cepat ke seluruh fitur PinjamanKu</p>
+          </div>
+          <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 grid place-items-center text-lg">
+            <i class="ph-fill ph-squares-four"></i>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <a href="pinjaman.html" class="action-card">
+            <div class="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 grid place-items-center text-xl shrink-0">
+              <i class="ph-fill ph-users"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <b class="block text-sm text-slate-800">Data Pinjaman</b>
+              <small class="text-xs text-slate-400">Kelola peminjam, bunga & cicilan</small>
+            </div>
+            <i class="ph-bold ph-arrow-up-right text-slate-300"></i>
+          </a>
+
+          <a href="tracker.html" class="action-card">
+            <div class="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-600 grid place-items-center text-xl shrink-0">
+              <i class="ph-fill ph-chart-line-up"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <b class="block text-sm text-slate-800">Money Tracker</b>
+              <small class="text-xs text-slate-400">Catat kas keluar & masuk</small>
+            </div>
+            <i class="ph-bold ph-arrow-up-right text-slate-300"></i>
+          </a>
+
+          <a href="calculator.html" class="action-card">
+            <div class="w-11 h-11 rounded-xl bg-violet-50 text-violet-600 grid place-items-center text-xl shrink-0">
+              <i class="ph-fill ph-calculator"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <b class="block text-sm text-slate-800">Kalkulator Bunga</b>
+              <small class="text-xs text-slate-400">Simulasi laba & kalkulator biasa</small>
+            </div>
+            <i class="ph-bold ph-arrow-up-right text-slate-300"></i>
+          </a>
+
+          <a href="pinjaman.html#riwayat" class="action-card">
+            <div class="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 grid place-items-center text-xl shrink-0">
+              <i class="ph-fill ph-clock-counter-clockwise"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <b class="block text-sm text-slate-800">Riwayat Pembayaran</b>
+              <small class="text-xs text-slate-400">Histori bunga & pelunasan</small>
+            </div>
+            <i class="ph-bold ph-arrow-up-right text-slate-300"></i>
+          </a>
+        </div>
+      </section>
+
+      <!-- Perlu Perhatian -->
+      <section class="panel p-6 lg:col-span-2 flex flex-col justify-between">
+        <div>
+          <div class="flex justify-between items-center mb-4">
+            <div>
+              <h2 class="font-extrabold text-lg text-slate-800">Perlu Perhatian</h2>
+              <p class="text-xs text-slate-400 mt-0.5">Jatuh tempo terdekat (Siklus Tgl 7 & 22)</p>
+            </div>
+            <div class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 grid place-items-center text-lg">
+              <i class="ph-fill ph-bell-ringing"></i>
+            </div>
+          </div>
+
+          <div id="attentionList" class="space-y-3">
+            <div class="text-center py-8 text-slate-400 text-sm">
+              <i class="ph ph-spinner-gap animate-spin inline-block mr-1"></i> Memuat data...
+            </div>
+          </div>
+        </div>
+
+        <a href="pinjaman.html" class="mt-5 block w-full text-center rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-3 transition-colors">
+          Lihat Semua Pinjaman <i class="ph-bold ph-arrow-right ml-1"></i>
+        </a>
+      </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-center text-xs text-slate-400 py-6 border-t border-slate-200/60 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <span>PinjamanKu &copy; 2026 &middot; Modern Financial Management System</span>
+      <div class="flex items-center gap-4">
+        <a href="#" onclick="openConfigModal();return false;" class="text-blue-600 hover:underline">Google Drive & Sheet Setup</a>
+        <span>&bull;</span>
+        <a href="https://pages.github.com" target="_blank" class="hover:text-slate-600">GitHub Pages Ready</a>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Modal Konfigurasi Google Sheets API & Drive -->
+  <div id="modalConfig" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+          <i class="ph-fill ph-database text-blue-600"></i> Pengaturan Database Google Sheets
+        </h3>
+        <button onclick="closeConfigModal()" class="text-slate-400 hover:text-slate-600">
+          <i class="ph-bold ph-x text-lg"></i>
+        </button>
+      </div>
+
+      <p class="text-xs text-slate-500 mb-4 leading-relaxed">
+        Masukkan URL <strong>Google Apps Script Web App</strong> untuk menyinkronkan data langsung ke Spreadsheet & Google Drive Anda saat di-deploy ke GitHub Pages.
+      </p>
+
+      <div class="space-y-3 mb-5">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Web App URL (exec)</label>
+          <input type="url" id="inputApiUrl" placeholder="https://script.google.com/macros/s/.../exec"
+            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-mono outline-none focus:border-blue-500 focus:bg-white">
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2">
+        <button onclick="closeConfigModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100">Batal</button>
+        <button onclick="saveApiUrl()" class="px-5 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20">Simpan URL</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Validasi sesi autentikasi
+    AppStorage.checkAuth();
+
+    function handleLogout() {
+      AppStorage.clearAuth();
+      window.location.replace('login.html');
+    }
+
+    function openConfigModal() {
+      document.getElementById('inputApiUrl').value = AppStorage.getApiUrl();
+      document.getElementById('modalConfig').classList.remove('hidden');
+    }
+
+    function closeConfigModal() {
+      document.getElementById('modalConfig').classList.add('hidden');
+    }
+
+    function saveApiUrl() {
+      const url = document.getElementById('inputApiUrl').value.trim();
+      AppStorage.setApiUrl(url);
+      closeConfigModal();
+      updateBadge();
+      showAlert('Koneksi Google Sheets berhasil diperbarui!', 'success');
+      loadDashboardData();
+    }
+
+    function updateBadge() {
+      const badge = document.getElementById('badgeApi');
+      if (PinjamanAPI.isApiConnected()) {
+        badge.className = "text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200";
+        badge.innerHTML = '<i class="ph-fill ph-check-circle mr-1"></i> Google Sheets Connected';
+      } else {
+        badge.className = "text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200";
+        badge.innerHTML = '<i class="ph-fill ph-hard-drive mr-1"></i> Local Storage Mode';
+      }
+    }
+
+    async function loadDashboardData() {
+      updateBadge();
+      const listEl = document.getElementById('attentionList');
+      listEl.innerHTML = '<div class="text-center py-6 text-slate-400 text-sm"><i class="ph ph-spinner-gap animate-spin mr-1"></i> Memuat data...</div>';
+
+      try {
+        const data = await PinjamanAPI.request('getDataPinjaman', 'GET');
+        renderDashboard(data || []);
+      } catch (err) {
+        console.error(err);
+        listEl.innerHTML = '<div class="text-center py-4 text-rose-500 text-xs">Gagal memuat data.</div>';
+      }
+    }
+
+    function renderDashboard(data) {
+      const active = data.filter(x => String(x.status).toLowerCase() !== 'lunas');
+      const outstanding = active.reduce((acc, curr) => acc + (Number(curr.sisaTagihan) || 0), 0);
+      const interest = active.reduce((acc, curr) => acc + (Number(curr.bungaNominal) || 0), 0);
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const late = active.filter(x => {
+        if (!x.jatuhTempo) return false;
+        const d = new Date(String(x.jatuhTempo).slice(0, 10) + 'T00:00:00');
+        return d < today && String(x.status) !== 'Sudah Bayar Bunga';
+      });
+
+      document.getElementById('outstanding').textContent = Utils.formatRupiah(outstanding);
+      document.getElementById('interest').textContent = Utils.formatRupiah(interest);
+      document.getElementById('borrowers').textContent = `${active.length} orang`;
+      document.getElementById('late').textContent = `${late.length} pinjaman`;
+
+      const sorted = active.slice().sort((a, b) => {
+        const da = new Date(String(a.jatuhTempo).slice(0, 10) + 'T00:00:00') || new Date(9999999999999);
+        const db = new Date(String(b.jatuhTempo).slice(0, 10) + 'T00:00:00') || new Date(9999999999999);
+        return da - db;
+      }).slice(0, 4);
+
+      const box = document.getElementById('attentionList');
+      if (!sorted.length) {
+        box.innerHTML = `
+          <div class="rounded-2xl bg-emerald-50 border border-emerald-100 p-4 text-xs text-emerald-800 font-semibold flex items-center gap-2">
+            <i class="ph-fill ph-check-circle text-emerald-600 text-lg"></i>
+            <span>Tidak ada tagihan tertunda atau pinjaman aktif saat ini.</span>
+          </div>`;
+        return;
+      }
+
+      box.innerHTML = sorted.map(item => {
+        const d = new Date(String(item.jatuhTempo).slice(0, 10) + 'T00:00:00');
+        const isOverdue = d < today;
+        return `
+          <div class="flex items-center justify-between gap-3 p-3 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:shadow-sm transition-all">
+            <div class="min-w-0 flex-1">
+              <b class="block truncate text-sm text-slate-800">${Utils.escapeHtml(item.nama || 'Tanpa Nama')}</b>
+              <small class="text-xs text-slate-400">Tempo: ${Utils.formatDate(item.jatuhTempo)} &bull; ${Utils.formatRupiah(item.sisaTagihan)}</small>
+            </div>
+            <span class="text-[11px] font-bold px-2.5 py-1 rounded-full ${
+              isOverdue ? 'bg-rose-50 text-rose-600 border border-rose-100' : 'bg-blue-50 text-blue-600 border border-blue-100'
+            }">
+              ${isOverdue ? 'Terlambat' : Utils.escapeHtml(item.status || 'Aktif')}
+            </span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Jalankan load data
+    loadDashboardData();
+  </script>
+</body>
+</html>
