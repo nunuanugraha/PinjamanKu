@@ -109,7 +109,7 @@
       <div>
         <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Username</label>
         <div class="relative">
-          <input type="text" id="username" required autocomplete="username" placeholder="nunuanugraha"
+          <input type="text" id="username" required autocomplete="username" placeholder="Masukkan username"
             class="field-input pl-11">
           <i class="ph-bold ph-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
         </div>
@@ -135,67 +135,21 @@
       </button>
     </form>
 
-    <!-- Cloud / Sheets Status & Quick Config -->
     <div class="mt-8 pt-6 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-      <div class="flex items-center gap-1.5" id="apiStatus">
-        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-        <span id="apiStatusText">Siap digunakan</span>
+      <div class="flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+        <span>Koneksi Aman Terenkripsi</span>
       </div>
-      <button onclick="toggleConfigModal()" class="text-blue-600 hover:underline font-semibold flex items-center gap-1">
-        <i class="ph-bold ph-gear"></i> Konfigurasi DB
-      </button>
-    </div>
-  </div>
-
-  <!-- Modal Konfigurasi DB URL -->
-  <div id="modalConfig" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
-          <i class="ph-fill ph-database text-blue-600"></i> Hubungkan Google Sheets & Drive
-        </h3>
-        <button onclick="toggleConfigModal()" class="text-slate-400 hover:text-slate-600">
-          <i class="ph-bold ph-x text-lg"></i>
-        </button>
-      </div>
-      <p class="text-xs text-slate-500 mb-4 leading-relaxed">
-        Masukkan URL <strong>Web App Google Apps Script</strong> hasil deploy Spreadsheet Anda. Data akan otomatis tersimpan langsung ke Google Spreadsheet & Drive Anda secara live saat deploy ke GitHub Pages!
-      </p>
-
-      <div class="mb-4">
-        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Google Apps Script Web App URL</label>
-        <input type="url" id="configApiUrl" placeholder="https://script.google.com/macros/s/.../exec"
-          class="field-input text-xs font-mono">
-        <p class="text-[11px] text-slate-400 mt-1">Kosongkan jika ingin menggunakan penyimpanan lokal di browser (demo/offline).</p>
-      </div>
-
-      <div class="flex justify-end gap-2">
-        <button onclick="toggleConfigModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100">Batal</button>
-        <button onclick="saveApiConfig()" class="px-5 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white hover:bg-blue-700">Simpan Koneksi</button>
-      </div>
+      <span class="text-[11px] text-slate-400">v2.0 &bull; Secure Session</span>
     </div>
   </div>
 
   <script>
-    // Cek apakah sudah login sebelumnya
+    // Cek sesi login
     const auth = AppStorage.getAuth();
-    if (auth && auth.isLoggedIn) {
+    if (auth && auth.isLoggedIn && auth.token) {
       window.location.replace('dashboard.html');
     }
-
-    // Update status API
-    function updateStatusUI() {
-      const isConnected = PinjamanAPI.isApiConnected();
-      const statusText = document.getElementById('apiStatusText');
-      if (isConnected) {
-        statusText.textContent = "Google Sheets & Drive Aktif";
-        statusText.previousElementSibling.className = "w-2 h-2 rounded-full bg-emerald-500";
-      } else {
-        statusText.textContent = "Mode Mandiri (Local Storage)";
-        statusText.previousElementSibling.className = "w-2 h-2 rounded-full bg-amber-500";
-      }
-    }
-    updateStatusUI();
 
     function togglePasswordVisibility() {
       const pwd = document.getElementById('password');
@@ -209,22 +163,6 @@
       }
     }
 
-    function toggleConfigModal() {
-      const modal = document.getElementById('modalConfig');
-      modal.classList.toggle('hidden');
-      if (!modal.classList.contains('hidden')) {
-        document.getElementById('configApiUrl').value = AppStorage.getApiUrl();
-      }
-    }
-
-    function saveApiConfig() {
-      const url = document.getElementById('configApiUrl').value.trim();
-      AppStorage.setApiUrl(url);
-      toggleConfigModal();
-      updateStatusUI();
-      showAlert('Pengaturan koneksi Google Sheets & Drive berhasil diperbarui!', 'success');
-    }
-
     async function handleLogin(e) {
       e.preventDefault();
       const btn = document.getElementById('btnSubmit');
@@ -233,19 +171,19 @@
       const pass = document.getElementById('password').value;
 
       btn.disabled = true;
-      btn.innerHTML = '<i class="ph ph-spinner-gap animate-spin"></i> Memeriksa...';
+      btn.innerHTML = '<i class="ph ph-spinner-gap animate-spin"></i> Memverifikasi kredensial...';
       alertBox.classList.add('hidden');
 
-      // Validasi kredensial bawaan proyek
-      const validUser = 'nunuanugraha';
-      const validPass = 'p@ssword123!';
+      try {
+        // Otentikasi langsung ke server Google Apps Script (bebas hardcode password di GitHub)
+        const res = await PinjamanAPI.login(user, pass);
 
-      setTimeout(() => {
-        if (user.toLowerCase() === validUser.toLowerCase() && (pass === validPass || pass === 'p\\@ssword123!')) {
+        if (res && res.success && res.token) {
           AppStorage.setAuth({
             isLoggedIn: true,
             username: user,
-            name: 'Nunu Anugraha',
+            name: res.name || 'Nunu Anugraha',
+            token: res.token,
             loginTime: new Date().toISOString()
           });
 
@@ -255,15 +193,21 @@
 
           setTimeout(() => {
             window.location.replace('dashboard.html');
-          }, 800);
+          }, 600);
         } else {
           alertBox.className = 'mb-5 p-3.5 rounded-xl text-xs font-semibold flex items-center gap-2 bg-rose-50 text-rose-700 border border-rose-100';
-          alertBox.innerHTML = '<i class="ph-fill ph-x-circle text-lg"></i> Username atau Password salah! Periksa kembali.';
+          alertBox.innerHTML = `<i class="ph-fill ph-x-circle text-lg"></i> ${res.message || 'Username atau password salah!'}`;
           alertBox.classList.remove('hidden');
           btn.disabled = false;
           btn.innerHTML = '<span>Masuk ke Dashboard</span><i class="ph-bold ph-arrow-right"></i>';
         }
-      }, 500);
+      } catch (err) {
+        alertBox.className = 'mb-5 p-3.5 rounded-xl text-xs font-semibold flex items-center gap-2 bg-rose-50 text-rose-700 border border-rose-100';
+        alertBox.innerHTML = '<i class="ph-fill ph-warning text-lg"></i> Gagal menghubungi server verifikasi. Periksa koneksi internet Anda.';
+        alertBox.classList.remove('hidden');
+        btn.disabled = false;
+        btn.innerHTML = '<span>Masuk ke Dashboard</span><i class="ph-bold ph-arrow-right"></i>';
+      }
     }
   </script>
 </body>
