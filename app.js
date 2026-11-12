@@ -19,7 +19,15 @@ const STORAGE_KEYS = {
 
 class AppStorage {
   static getApiUrl() {
-    return GAS_API_URL;
+    return localStorage.getItem('pinjamanku_custom_api_url') || GAS_API_URL;
+  }
+
+  static setApiUrl(url) {
+    if (url && url.trim()) {
+      localStorage.setItem('pinjamanku_custom_api_url', url.trim());
+    } else {
+      localStorage.removeItem('pinjamanku_custom_api_url');
+    }
   }
 
   static getAuth() {
