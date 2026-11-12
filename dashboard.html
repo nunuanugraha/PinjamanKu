@@ -6,6 +6,7 @@
   <title>PinjamanKu - Dashboard</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💰</text></svg>">
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -115,6 +116,39 @@
         <p class="text-xs font-bold uppercase tracking-wider text-slate-400 mt-4">Jatuh Tempo / Terlambat</p>
         <strong id="late" class="block text-2xl font-extrabold text-slate-800 mt-1">0 pinjaman</strong>
         <span class="text-xs text-slate-400">Perlu segera ditagih / diperhatikan</span>
+      </div>
+    </div>
+
+    <!-- Visualisasi Grafik Keuangan & Arus Kas -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="panel p-6">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="font-extrabold text-base text-slate-800">Pertumbuhan Modal Pinjaman</h2>
+            <p class="text-xs text-slate-400">Total akumulasi pencairan modal pokok per bulan</p>
+          </div>
+          <span class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 grid place-items-center text-lg">
+            <i class="ph-bold ph-chart-bar"></i>
+          </span>
+        </div>
+        <div class="h-64 relative">
+          <canvas id="chartModal"></canvas>
+        </div>
+      </div>
+
+      <div class="panel p-6">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="font-extrabold text-base text-slate-800">Tren Laba Bunga vs Pencairan</h2>
+            <p class="text-xs text-slate-400">Perbandingan perputaran modal keluar & keuntungan bunga</p>
+          </div>
+          <span class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 grid place-items-center text-lg">
+            <i class="ph-bold ph-chart-line"></i>
+          </span>
+        </div>
+        <div class="h-64 relative">
+          <canvas id="chartBunga"></canvas>
+        </div>
       </div>
     </div>
 
@@ -293,6 +327,7 @@
       try {
         const data = await PinjamanAPI.request('getDataPinjaman', 'GET');
         renderDashboard(data || []);
+      renderCharts(data || []);
       } catch (err) {
         console.error(err);
         listEl.innerHTML = '<div class="text-center py-4 text-rose-500 text-xs">Gagal memuat data.</div>';
@@ -351,6 +386,145 @@
           </div>
         `;
       }).join('');
+    }
+
+    let chartModalInstance = null;
+    let chartBungaInstance = null;
+
+    function renderCharts(data) {
+      if (!Array.isArray(data) || data.length === 0) return;
+
+      // Kelompokkan data berdasarkan Bulan (YYYY-MM)
+      const monthlyData = {};
+      data.forEach(item => {
+        if (!item.tanggalPinjam) return;
+        const monthKey = String(item.tanggalPinjam).slice(0, 7); // format '2026-10'
+        if (!monthlyData[monthKey]) {
+          monthlyData[monthKey] = { modal: 0, bunga: 0 };
+        }
+        monthlyData[monthKey].modal += Number(item.nominalPinjaman) || 0;
+        monthlyData[monthKey].bunga += Number(item.bungaNominal) || 0;
+      });
+
+      // Urutkan bulan secara kronologis
+      const sortedMonths = Object.keys(monthlyData).sort();
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ags", "Sep", "Okt", "Nov", "Des"];
+      const labels = sortedMonths.map(m => {
+        const [year, month] = m.split('-');
+        return `${monthNames[parseInt(month, 10) - 1]} ${year}`;
+      });
+
+      const modalValues = sortedMonths.map(m => monthlyData[m].modal);
+      const bungaValues = sortedMonths.map(m => monthlyData[m].bunga);
+
+      // 1. Chart Pertumbuhan Modal (Bar Chart)
+      const ctxModal = document.getElementById('chartModal');
+      if (ctxModal) {
+        if (chartModalInstance) chartModalInstance.destroy();
+        chartModalInstance = new Chart(ctxModal, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Modal Dipinjamkan (Rp)',
+              data: modalValues,
+              backgroundColor: 'rgba(37, 99, 235, 0.85)',
+              borderRadius: 8,
+              borderSkipped: false
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: (ctx) => ' ' + Utils.formatRupiah(ctx.parsed.y)
+                }
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  callback: (val) => 'Rp' + (val / 1000000) + 'jt',
+                  font: { size: 10 }
+                },
+                grid: { color: 'rgba(226, 232, 240, 0.6)' }
+              },
+              x: {
+                ticks: { font: { size: 11, weight: '600' } },
+                grid: { display: false }
+              }
+            }
+          }
+        });
+      }
+
+      // 2. Chart Laba Bunga vs Modal (Line Chart)
+      const ctxBunga = document.getElementById('chartBunga');
+      if (ctxBunga) {
+        if (chartBungaInstance) chartBungaInstance.destroy();
+        chartBungaInstance = new Chart(ctxBunga, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: 'Potensi Laba Bunga',
+                data: bungaValues,
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                borderWidth: 3,
+                tension: 0.35,
+                fill: true,
+                pointRadius: 4,
+                pointBackgroundColor: '#10b981'
+              },
+              {
+                label: 'Modal Pokok',
+                data: modalValues,
+                borderColor: '#6366f1',
+                borderDash: [5, 5],
+                borderWidth: 2,
+                tension: 0.35,
+                fill: false,
+                pointRadius: 3
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'top',
+                labels: { boxWidth: 12, font: { size: 11, weight: '600' } }
+              },
+              tooltip: {
+                callbacks: {
+                  label: (ctx) => ` ${ctx.dataset.label}: ${Utils.formatRupiah(ctx.parsed.y)}`
+                }
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  callback: (val) => 'Rp' + (val / 1000000) + 'jt',
+                  font: { size: 10 }
+                },
+                grid: { color: 'rgba(226, 232, 240, 0.6)' }
+              },
+              x: {
+                ticks: { font: { size: 11, weight: '600' } },
+                grid: { display: false }
+              }
+            }
+          }
+        });
+      }
     }
 
     // Jalankan load data

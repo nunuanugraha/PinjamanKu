@@ -77,8 +77,24 @@
       </div>
     </header>
 
-    <!-- Filter & Pencarian -->
-    <div class="panel-card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <!-- Tab Filter Cepat (Jatuh Tempo & Status) -->
+    <div class="flex flex-wrap items-center gap-2">
+      <button onclick="setTabFilter('semua')" id="tabFilterSemua" class="px-4 py-2 rounded-xl text-xs font-bold transition-all bg-blue-600 text-white shadow-sm shadow-blue-500/20">
+        Semua Pinjaman (<span id="countSemua">0</span>)
+      </button>
+      <button onclick="setTabFilter('minggu_ini')" id="tabFilterMingguIni" class="px-4 py-2 rounded-xl text-xs font-bold transition-all bg-white border border-amber-200 text-amber-700 hover:bg-amber-50">
+        <i class="ph-bold ph-calendar-check mr-1"></i> Jatuh Tempo Minggu Ini (<span id="countMingguIni">0</span>)
+      </button>
+      <button onclick="setTabFilter('terlambat')" id="tabFilterTerlambat" class="px-4 py-2 rounded-xl text-xs font-bold transition-all bg-white border border-rose-200 text-rose-700 hover:bg-rose-50">
+        <i class="ph-bold ph-warning-circle mr-1"></i> Menunggak / Terlambat (<span id="countTerlambat">0</span>)
+      </button>
+      <button onclick="setTabFilter('lunas')" id="tabFilterLunas" class="px-4 py-2 rounded-xl text-xs font-bold transition-all bg-white border border-emerald-200 text-emerald-700 hover:bg-emerald-50">
+        <i class="ph-bold ph-check-circle mr-1"></i> Sudah Lunas (<span id="countLunas">0</span>)
+      </button>
+    </div>
+
+    <!-- Filter & Pencarian Lanjutan -->
+    <div class="panel-card p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
       <div class="flex items-center gap-2 flex-1 max-w-md">
         <div class="relative w-full">
           <i class="ph-bold ph-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
@@ -88,6 +104,21 @@
       </div>
 
       <div class="flex items-center gap-2 flex-wrap">
+        <!-- Filter Rentang Waktu -->
+        <select id="rentangTanggalFilter" onchange="handleFilterRentang(this.value)" class="px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-xs font-semibold text-slate-700 outline-none">
+          <option value="semua">Semua Waktu</option>
+          <option value="bulan_ini">Pinjaman Bulan Ini</option>
+          <option value="bulan_lalu">Pinjaman Bulan Lalu</option>
+          <option value="kustom">Rentang Kustom...</option>
+        </select>
+
+        <!-- Input Kustom Tanggal (Hidden default) -->
+        <div id="boxCustomDate" class="hidden flex items-center gap-1.5">
+          <input type="date" id="tglMulai" onchange="handleSearch()" class="px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs bg-slate-50">
+          <span class="text-xs text-slate-400">-</span>
+          <input type="date" id="tglSelesai" onchange="handleSearch()" class="px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs bg-slate-50">
+        </div>
+
         <select id="statusFilter" onchange="handleFilterStatus()" class="px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-xs font-semibold text-slate-700 outline-none">
           <option value="all">Semua Status</option>
           <option value="belum lunas">Belum Lunas</option>
@@ -136,7 +167,7 @@
 
     <!-- Section Riwayat Pembayaran (Anchor) -->
     <div id="riwayat" class="panel-card overflow-hidden mt-10">
-      <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div class="p-5 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 class="font-extrabold text-base text-slate-800 flex items-center gap-2">
             <i class="ph-fill ph-clock-counter-clockwise text-amber-500"></i> Riwayat Pembayaran & Cicilan
@@ -144,8 +175,23 @@
           <p class="text-xs text-slate-400">Catatan pembayaran bunga periodik & pelunasan penuh</p>
         </div>
 
-        <div class="flex items-center gap-3">
-          <span class="text-xs text-slate-500">Total Diterima: <strong id="totalNominalRiwayat" class="text-emerald-600 font-extrabold">Rp0</strong></span>
+        <div class="flex items-center gap-2 flex-wrap">
+          <div class="relative">
+            <i class="ph-bold ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+            <input type="text" id="searchRiwayatInput" oninput="handleSearchRiwayat()" placeholder="Cari nama peminjam / catatan..."
+              class="pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-xs outline-none focus:border-amber-500 focus:bg-white w-52 sm:w-60">
+          </div>
+
+          <select id="filterJenisRiwayat" onchange="handleFilterJenisRiwayat()" class="px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-semibold text-slate-700 outline-none">
+            <option value="all">Semua Jenis</option>
+            <option value="bunga">Bunga Saja</option>
+            <option value="pelunasan">Pelunasan</option>
+          </select>
+
+          <div class="bg-emerald-50 border border-emerald-100 text-emerald-800 px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5">
+            <span class="text-slate-500">Total:</span>
+            <strong id="totalNominalRiwayat" class="text-emerald-700 font-extrabold">Rp0</strong>
+          </div>
         </div>
       </div>
 
@@ -158,6 +204,7 @@
               <th class="px-6 py-3.5">Jenis Pembayaran</th>
               <th class="px-6 py-3.5 text-right">Nominal</th>
               <th class="px-6 py-3.5">Catatan / Bukti</th>
+              <th class="px-6 py-3.5 text-center">Aksi</th>
             </tr>
           </thead>
           <tbody id="tableRiwayat" class="divide-y divide-slate-100 text-slate-700">
@@ -166,6 +213,12 @@
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- Pagination Riwayat -->
+      <div id="paginationRiwayatBar" class="p-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+        <span id="pageRiwayatInfo">Menampilkan 0 riwayat</span>
+        <div class="flex items-center gap-1.5" id="pageRiwayatButtons"></div>
       </div>
     </div>
 
@@ -373,6 +426,9 @@
     let currentPage = 1;
     const pageSize = 10;
 
+    let currentRiwayatPage = 1;
+    const riwayatPageSize = 10;
+
     async function loadAllData() {
       const tbody = document.getElementById('tablePinjaman');
       tbody.innerHTML = `<tr><td colspan="8" class="text-center py-12 text-slate-400"><i class="ph ph-spinner-gap animate-spin mr-1"></i> Memuat data...</td></tr>`;
@@ -385,6 +441,7 @@
         allPinjaman = Array.isArray(pinjamanRes) ? pinjamanRes : [];
         allRiwayat = Array.isArray(riwayatRes) ? riwayatRes : [];
 
+        updateTabCounts();
         renderTable();
         renderRiwayat();
       } catch (e) {
@@ -392,20 +449,128 @@
       }
     }
 
+    let activeTabFilter = 'semua'; // 'semua', 'minggu_ini', 'terlambat', 'lunas'
+
+    function setTabFilter(tab) {
+      activeTabFilter = tab;
+      currentPage = 1;
+      
+      const tabIds = {
+        semua: 'tabFilterSemua',
+        minggu_ini: 'tabFilterMingguIni',
+        terlambat: 'tabFilterTerlambat',
+        lunas: 'tabFilterLunas'
+      };
+
+      Object.keys(tabIds).forEach(key => {
+        const btn = document.getElementById(tabIds[key]);
+        if (!btn) return;
+        if (key === tab) {
+          btn.className = 'px-4 py-2 rounded-xl text-xs font-bold transition-all bg-blue-600 text-white shadow-sm shadow-blue-500/20';
+        } else {
+          btn.className = 'px-4 py-2 rounded-xl text-xs font-bold transition-all bg-white border border-slate-200 text-slate-700 hover:bg-slate-50';
+        }
+      });
+
+      renderTable();
+    }
+
+    function handleFilterRentang(val) {
+      const box = document.getElementById('boxCustomDate');
+      if (val === 'kustom') {
+        box.classList.remove('hidden');
+      } else {
+        box.classList.add('hidden');
+      }
+      currentPage = 1;
+      renderTable();
+    }
+
+    function updateTabCounts() {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const nextWeek = new Date();
+      nextWeek.setDate(today.getDate() + 7);
+      nextWeek.setHours(23, 59, 59, 999);
+
+      let countSemua = allPinjaman.length;
+      let countLunas = allPinjaman.filter(x => String(x.status).toLowerCase() === 'lunas').length;
+      let countTerlambat = allPinjaman.filter(x => {
+        if (!x.jatuhTempo || String(x.status).toLowerCase() === 'lunas' || String(x.status) === 'Sudah Bayar Bunga') return false;
+        const d = new Date(String(x.jatuhTempo).slice(0, 10) + 'T00:00:00');
+        return d < today;
+      }).length;
+
+      let countMingguIni = allPinjaman.filter(x => {
+        if (!x.jatuhTempo || String(x.status).toLowerCase() === 'lunas') return false;
+        const d = new Date(String(x.jatuhTempo).slice(0, 10) + 'T00:00:00');
+        return d >= today && d <= nextWeek;
+      }).length;
+
+      document.getElementById('countSemua').textContent = countSemua;
+      document.getElementById('countMingguIni').textContent = countMingguIni;
+      document.getElementById('countTerlambat').textContent = countTerlambat;
+      document.getElementById('countLunas').textContent = countLunas;
+    }
+
     function getFilteredData() {
       const q = document.getElementById('searchInput').value.toLowerCase().trim();
       const status = document.getElementById('statusFilter').value.toLowerCase();
+      const rentang = document.getElementById('rentangTanggalFilter').value;
+      const tglMulai = document.getElementById('tglMulai').value;
+      const tglSelesai = document.getElementById('tglSelesai').value;
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const nextWeek = new Date();
+      nextWeek.setDate(today.getDate() + 7);
+      nextWeek.setHours(23, 59, 59, 999);
+
+      const now = new Date();
+      const curYear = now.getFullYear();
+      const curMonth = now.getMonth(); // 0-based
 
       return allPinjaman.filter(item => {
+        // Filter Kata Kunci
         const matchQuery = !q ||
           String(item.nama || '').toLowerCase().includes(q) ||
           String(item.telepon || '').toLowerCase().includes(q) ||
           String(item.catatan || '').toLowerCase().includes(q);
 
+        // Filter Dropdown Status
         const itemStatus = String(item.status || 'Belum Lunas').toLowerCase();
         const matchStatus = status === 'all' || itemStatus === status;
 
-        return matchQuery && matchStatus;
+        // Filter Tab Cepat
+        let matchTab = true;
+        const dTempo = item.jatuhTempo ? new Date(String(item.jatuhTempo).slice(0, 10) + 'T00:00:00') : null;
+        if (activeTabFilter === 'lunas') {
+          matchTab = itemStatus === 'lunas';
+        } else if (activeTabFilter === 'terlambat') {
+          matchTab = itemStatus !== 'lunas' && itemStatus !== 'sudah bayar bunga' && dTempo && dTempo < today;
+        } else if (activeTabFilter === 'minggu_ini') {
+          matchTab = itemStatus !== 'lunas' && dTempo && dTempo >= today && dTempo <= nextWeek;
+        }
+
+        // Filter Rentang Waktu Tanggal Pinjam
+        let matchRentang = true;
+        if (item.tanggalPinjam) {
+          const dPinjam = new Date(String(item.tanggalPinjam).slice(0, 10) + 'T00:00:00');
+          if (rentang === 'bulan_ini') {
+            matchRentang = dPinjam.getFullYear() === curYear && dPinjam.getMonth() === curMonth;
+          } else if (rentang === 'bulan_lalu') {
+            const prevMonth = curMonth === 0 ? 11 : curMonth - 1;
+            const prevYear = curMonth === 0 ? curYear - 1 : curYear;
+            matchRentang = dPinjam.getFullYear() === prevYear && dPinjam.getMonth() === prevMonth;
+          } else if (rentang === 'kustom') {
+            if (tglMulai && dPinjam < new Date(tglMulai + 'T00:00:00')) matchRentang = false;
+            if (tglSelesai && dPinjam > new Date(tglSelesai + 'T23:59:59')) matchRentang = false;
+          }
+        }
+
+        return matchQuery && matchStatus && matchTab && matchRentang;
       });
     }
 
@@ -479,6 +644,9 @@
               ` : `
                 <span class="text-emerald-600 text-xs font-bold px-2 py-1"><i class="ph-bold ph-check"></i> Selesai</span>
               `}
+              <button onclick="cetakSuratPerjanjian('${item.id}')" class="p-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 transition-colors" title="Cetak Surat Bukti Pinjaman">
+                <i class="ph-bold ph-printer text-sm"></i>
+              </button>
               <button onclick="openModalEdit('${item.id}')" class="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors" title="Ubah Data">
                 <i class="ph-bold ph-pencil-simple text-sm"></i>
               </button>
@@ -511,21 +679,47 @@
       }
     }
 
+    function getFilteredRiwayatData() {
+      const q = (document.getElementById('searchRiwayatInput')?.value || '').toLowerCase().trim();
+      const jenis = (document.getElementById('filterJenisRiwayat')?.value || 'all').toLowerCase();
+
+      return allRiwayat.filter(item => {
+        const matchQuery = !q ||
+          String(item.namaPeminjam || '').toLowerCase().includes(q) ||
+          String(item.catatan || '').toLowerCase().includes(q) ||
+          String(item.loanId || '').toLowerCase().includes(q);
+
+        const itemJenis = String(item.jenisPembayaran || '').toLowerCase();
+        const matchJenis = jenis === 'all' || itemJenis === jenis;
+
+        return matchQuery && matchJenis;
+      });
+    }
+
     function renderRiwayat() {
+      const filtered = getFilteredRiwayatData();
       const tbody = document.getElementById('tableRiwayat');
       tbody.innerHTML = '';
 
-      let total = 0;
-      if (!allRiwayat || allRiwayat.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-slate-400">Belum ada transaksi pembayaran.</td></tr>`;
-        document.getElementById('totalNominalRiwayat').textContent = Utils.formatRupiah(0);
+      const totalItems = filtered.length;
+      const totalPages = Math.ceil(totalItems / riwayatPageSize) || 1;
+      if (currentRiwayatPage > totalPages) currentRiwayatPage = totalPages;
+
+      const startIndex = (currentRiwayatPage - 1) * riwayatPageSize;
+      const paged = filtered.slice(startIndex, startIndex + riwayatPageSize);
+
+      let totalNominal = filtered.reduce((acc, curr) => acc + (Number(curr.nominalPembayaran) || 0), 0);
+      document.getElementById('totalNominalRiwayat').textContent = Utils.formatRupiah(totalNominal);
+
+      if (paged.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-slate-400 font-medium">Tidak ada riwayat pembayaran yang cocok.</td></tr>`;
+        document.getElementById('pageRiwayatInfo').textContent = 'Menampilkan 0 riwayat';
+        document.getElementById('pageRiwayatButtons').innerHTML = '';
         return;
       }
 
-      allRiwayat.forEach(item => {
+      paged.forEach(item => {
         const nom = Number(item.nominalPembayaran) || 0;
-        total += nom;
-
         const isBunga = String(item.jenisPembayaran).toLowerCase() === 'bunga';
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-slate-50/70 transition-colors';
@@ -533,7 +727,7 @@
           <td class="px-6 py-3.5 text-slate-600 font-medium whitespace-nowrap">${Utils.formatDate(item.tanggalPembayaran)}</td>
           <td class="px-6 py-3.5 font-bold text-slate-800">${Utils.escapeHtml(item.namaPeminjam || '-')}</td>
           <td class="px-6 py-3.5 whitespace-nowrap">
-            <span class="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold ${
+            <span class="inline-flex px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
               isBunga ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
             }">
               ${isBunga ? 'Bunga saja' : 'Pelunasan'}
@@ -541,12 +735,37 @@
           </td>
           <td class="px-6 py-3.5 text-right font-extrabold text-emerald-600 whitespace-nowrap">${Utils.formatRupiah(nom)}</td>
           <td class="px-6 py-3.5 text-slate-500 max-w-xs truncate">${Utils.escapeHtml(item.catatan || '-')}</td>
+          <td class="px-6 py-3.5 text-center whitespace-nowrap">
+            <button onclick="cetakKuitansiPembayaran('${item.id || ''}', '${escape(JSON.stringify(item))}')" class="px-2.5 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold text-[11px] flex items-center gap-1 mx-auto transition-colors" title="Cetak Kuitansi / Struk">
+              <i class="ph-bold ph-receipt text-xs"></i> Kuitansi
+            </button>
+          </td>
         `;
         tbody.appendChild(tr);
       });
 
-      document.getElementById('totalNominalRiwayat').textContent = Utils.formatRupiah(total);
+      document.getElementById('pageRiwayatInfo').textContent = `Menampilkan ${startIndex + 1} - ${Math.min(startIndex + riwayatPageSize, totalItems)} dari ${totalItems} riwayat`;
+      renderRiwayatPagination(totalPages);
     }
+
+    function renderRiwayatPagination(totalPages) {
+      const container = document.getElementById('pageRiwayatButtons');
+      container.innerHTML = '';
+      if (totalPages <= 1) return;
+
+      for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement('button');
+        btn.textContent = i;
+        btn.className = `w-7 h-7 rounded-lg text-xs font-bold transition-all ${
+          i === currentRiwayatPage ? 'bg-amber-500 text-white shadow-sm shadow-amber-500/30' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+        }`;
+        btn.onclick = () => { currentRiwayatPage = i; renderRiwayat(); };
+        container.appendChild(btn);
+      }
+    }
+
+    function handleSearchRiwayat() { currentRiwayatPage = 1; renderRiwayat(); }
+    function handleFilterJenisRiwayat() { currentRiwayatPage = 1; renderRiwayat(); }
 
     function handleSearch() { currentPage = 1; renderTable(); }
     function handleFilterStatus() { currentPage = 1; renderTable(); }
@@ -731,6 +950,178 @@
         btn.disabled = false;
         btn.textContent = 'Simpan Perubahan';
       }
+    }
+
+    // ---------------- FITUR CETAK SURAT PERJANJIAN & KUITANSI PDF ----------------
+    function cetakSuratPerjanjian(id) {
+      const item = allPinjaman.find(x => String(x.id).trim() === String(id).trim());
+      if (!item) return;
+
+      const printWindow = window.open('', '_blank', 'width=800,height=900');
+      const html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Bukti Perjanjian Pinjaman - ${Utils.escapeHtml(item.nama)}</title>
+          <style>
+            body { font-family: 'Times New Roman', Times, serif; padding: 40px; color: #111; line-height: 1.6; }
+            .header { text-align: center; border-bottom: 2px solid #111; padding-bottom: 12px; margin-bottom: 24px; }
+            .header h2 { margin: 0; font-size: 22px; text-transform: uppercase; letter-spacing: 1px; }
+            .header p { margin: 4px 0 0; font-size: 13px; color: #555; }
+            .title { text-align: center; font-size: 16px; font-weight: bold; text-decoration: underline; margin-bottom: 20px; }
+            table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+            td { padding: 8px 6px; font-size: 14px; vertical-align: top; }
+            .label { width: 35%; font-weight: bold; color: #333; }
+            .val { width: 65%; }
+            .highlight { font-weight: bold; font-size: 15px; color: #000; }
+            .signatures { display: flex; justify-content: space-between; margin-top: 60px; text-align: center; }
+            .sign-box { width: 40%; }
+            .sign-line { border-bottom: 1px solid #111; margin-top: 80px; }
+            .notes { margin-top: 25px; padding: 12px; background: #f9f9f9; border-left: 3px solid #333; font-size: 12px; }
+            @media print { .no-print { display: none; } }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h2>PINJAMANKU FINANCIAL SERVICES</h2>
+            <p>Sistem Pengelolaan Pinjaman & Keuangan &bull; Dokumen Bukti Resmi</p>
+          </div>
+
+          <div class="title">SURAT BUKTI KESEPAKATAN PINJAMAN</div>
+          
+          <p style="font-size: 13px; margin-bottom: 15px;">
+            Pada hari ini telah tercatat dan disepakati pemberian fasilitas pinjaman dana dengan rincian data sebagai berikut:
+          </p>
+
+          <table>
+            <tr><td class="label">ID Referensi Pinjaman</td><td>: ${item.id}</td></tr>
+            <tr><td class="label">Nama Peminjam / Debitur</td><td class="val highlight">: ${Utils.escapeHtml(item.nama)}</td></tr>
+            <tr><td class="label">Nomor Kontak / WhatsApp</td><td class="val">: ${item.telepon || '-'}</td></tr>
+            <tr><td class="label">Tanggal Pencairan Dana</td><td class="val">: ${Utils.formatDate(item.tanggalPinjam)}</td></tr>
+            <tr><td class="label">Nominal Pokok Pinjaman</td><td class="val highlight">: ${Utils.formatRupiah(item.nominalPinjaman)}</td></tr>
+            <tr><td class="label">Persentase Bunga Pinjaman</td><td class="val">: ${item.bungaPersen || 30}% (${Utils.formatRupiah(item.bungaNominal)})</td></tr>
+            <tr><td class="label">Total Pengembalian</td><td class="val highlight">: ${Utils.formatRupiah(item.totalBayar)}</td></tr>
+            <tr><td class="label">Tanggal Jatuh Tempo</td><td class="val highlight">: ${Utils.formatDate(item.jatuhTempo)}</td></tr>
+            <tr><td class="label">Status Saat Ini</td><td class="val">: <strong>${item.status}</strong></td></tr>
+            <tr><td class="label">Catatan / Keperluan</td><td class="val">: ${item.catatan || '-'}</td></tr>
+          </table>
+
+          <div class="notes">
+            <strong>Ketentuan Siklus Pembayaran:</strong><br>
+            1. Peminjam wajib melakukan pelunasan penuh atau pembayaran bunga tepat pada tanggal jatuh tempo yang tertera.<br>
+            2. Pembayaran bunga periodik akan memperpanjang jatuh tempo ke siklus tanggal 22 atau 7 berikutnya tanpa mengurangi pokok pinjaman.
+          </div>
+
+          <div class="signatures">
+            <div class="sign-box">
+              <span>Penerima Pinjaman / Debitur</span>
+              <div class="sign-line"></div>
+              <b>( ${Utils.escapeHtml(item.nama)} )</b>
+            </div>
+            <div class="sign-box">
+              <span>Pemberi Pinjaman / Pengelola</span>
+              <div class="sign-line"></div>
+              <b>( Nunu Anugraha )</b>
+            </div>
+          </div>
+
+          <div style="text-align: center; margin-top: 40px;" class="no-print">
+            <button onclick="window.print()" style="padding: 10px 24px; font-size: 14px; font-weight: bold; background: #2563eb; color: #fff; border: none; border-radius: 8px; cursor: pointer;">
+              🖨️ Cetak / Simpan PDF
+            </button>
+          </div>
+        </body>
+        </html>
+      `;
+      printWindow.document.write(html);
+      printWindow.document.close();
+    }
+
+    function cetakKuitansiPembayaran(id, itemEncoded) {
+      let item = null;
+      try {
+        item = JSON.parse(unescape(itemEncoded));
+      } catch (e) {
+        item = allRiwayat.find(x => String(x.id).trim() === String(id).trim());
+      }
+      if (!item) return;
+
+      const printWindow = window.open('', '_blank', 'width=750,height=800');
+      const isBunga = String(item.jenisPembayaran).toLowerCase() === 'bunga';
+      const html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Kuitansi Pembayaran - ${item.namaPeminjam}</title>
+          <style>
+            body { font-family: 'Courier New', Courier, monospace; padding: 30px; color: #111; max-width: 650px; margin: auto; }
+            .receipt { border: 2px dashed #444; padding: 24px; border-radius: 12px; background: #fff; }
+            .header { text-align: center; border-bottom: 2px solid #222; padding-bottom: 10px; margin-bottom: 18px; }
+            .header h3 { margin: 0; font-size: 20px; font-weight: bold; }
+            .header p { margin: 4px 0 0; font-size: 11px; }
+            table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+            td { padding: 6px 4px; font-size: 13px; }
+            .label { width: 40%; color: #444; }
+            .val { width: 60%; font-weight: bold; }
+            .total-box { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px; text-align: center; margin: 15px 0; border-radius: 8px; }
+            .total-box span { font-size: 12px; color: #166534; display: block; }
+            .total-box strong { font-size: 24px; color: #15803d; }
+            .signatures { display: flex; justify-content: space-between; margin-top: 30px; text-align: center; font-size: 12px; }
+            .sign-box { width: 45%; }
+            .sign-line { border-bottom: 1px solid #333; margin-top: 60px; }
+            @media print { .no-print { display: none; } }
+          </style>
+        </head>
+        <body>
+          <div class="receipt">
+            <div class="header">
+              <h3>PINJAMANKU &bull; STRUK PEMBAYARAN</h3>
+              <p>BUKTI TRANSAKSI PEMBAYARAN SAH</p>
+            </div>
+
+            <table>
+              <tr><td class="label">No. Transaksi</td><td class="val">: ${item.id || 'TRX-' + Date.now()}</td></tr>
+              <tr><td class="label">Tanggal Bayar</td><td class="val">: ${Utils.formatDate(item.tanggalPembayaran)}</td></tr>
+              <tr><td class="label">Nama Peminjam</td><td class="val">: ${Utils.escapeHtml(item.namaPeminjam)}</td></tr>
+              <tr><td class="label">Jenis Transaksi</td><td class="val">: ${isBunga ? 'Pembayaran Bunga Siklus' : 'Pelunasan Penuh'}</td></tr>
+              <tr><td class="label">Keterangan / Catatan</td><td class="val">: ${Utils.escapeHtml(item.catatan || '-')}</td></tr>
+            </table>
+
+            <div class="total-box">
+              <span>JUMLAH DITERIMA</span>
+              <strong>${Utils.formatRupiah(item.nominalPembayaran)}</strong>
+            </div>
+
+            <p style="font-size: 11px; color: #555; text-align: center; margin-top: 10px;">
+              ${isBunga 
+                ? '*Pembayaran bunga telah berhasil dicatat. Jatuh tempo diperpanjang ke siklus berikutnya.' 
+                : '*Pembayaran pelunasan telah berhasil dicatat. Pinjaman dinyatakan LUNAS.'}
+            </p>
+
+            <div class="signatures">
+              <div class="sign-box">
+                <span>Penyetor / Peminjam</span>
+                <div class="sign-line"></div>
+                <b>${Utils.escapeHtml(item.namaPeminjam)}</b>
+              </div>
+              <div class="sign-box">
+                <span>Penerima Kas</span>
+                <div class="sign-line"></div>
+                <b>Nunu Anugraha</b>
+              </div>
+            </div>
+          </div>
+
+          <div style="text-align: center; margin-top: 25px;" class="no-print">
+            <button onclick="window.print()" style="padding: 10px 24px; font-size: 14px; font-weight: bold; background: #059669; color: #fff; border: none; border-radius: 8px; cursor: pointer;">
+              🖨️ Cetak Kuitansi / Simpan PDF
+            </button>
+          </div>
+        </body>
+        </html>
+      `;
+      printWindow.document.write(html);
+      printWindow.document.close();
     }
 
     async function hapusPinjaman(id) {
