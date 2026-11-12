@@ -1,5 +1,5 @@
 /**
- * PinjamanKu Client API & Storage Engine (CORS-Proof GitHub Pages Version)
+ * PinjamanKu Client API & Storage Engine (Production GitHub Pages Version)
  */
 
 const STORAGE_KEYS = {
@@ -11,8 +11,8 @@ const STORAGE_KEYS = {
   CONFIG: 'pinjamanku_app_config'
 };
 
-// Default URL dari deploy Apps Script Anda
-const DEFAULT_FALLBACK_API = 'https://script.google.com/macros/s/AKfycbxbHSi5qgNXMDMLDlXZbgZLHgpa_hyOjWENwqcH6V4lq8E16aODfACUbQRYLylgTtXv/exechttps://script.google.com/macros/s/AKfycbzdX75QkP-B6C2DNLkv2Xh5v4R-RIhlVDh9ZfpqbjfuJbI1qSgpreMBdbh3k_7YrvDL/exec';
+// URL Google Apps Script Anda yang sudah aktif dan berisi data asli
+const DEFAULT_FALLBACK_API = 'https://script.google.com/macros/s/AKfycbzdX75QkP-B6C2DNLkv2Xh5v4R-RIhlVDh9ZfpqbjfuJbI1qSgpreMBdbh3k_7YrvDL/exec';
 
 class AppStorage {
   static getApiUrl() {
@@ -67,45 +67,9 @@ class AppStorage {
   }
 }
 
-/**
- * Universal API Client yang kebal blokir CORS
- */
 class PinjamanAPI {
   static isApiConnected() {
     return Boolean(AppStorage.getApiUrl());
-  }
-
-  // Mengambil data via JSONP (Bypass blokir CORS 100%)
-  static fetchJsonp(url) {
-    return new Promise((resolve, reject) => {
-      const callbackName = 'gas_cb_' + Math.round(100000 * Math.random());
-      const script = document.createElement('script');
-      
-      const timeout = setTimeout(() => {
-        cleanup();
-        reject(new Error('Koneksi ke Google Apps Script timeout'));
-      }, 15000);
-
-      function cleanup() {
-        if (script.parentNode) script.parentNode.removeChild(script);
-        delete window[callbackName];
-        clearTimeout(timeout);
-      }
-
-      window[callbackName] = function(data) {
-        cleanup();
-        resolve(data);
-      };
-
-      script.onerror = function() {
-        cleanup();
-        reject(new Error('Gagal memuat skrip JSONP'));
-      };
-
-      const sep = url.includes('?') ? '&' : '?';
-      script.src = `${url}${sep}callback=${callbackName}&_t=${Date.now()}`;
-      document.body.appendChild(script);
-    });
   }
 
   static async request(action, method = 'GET', data = null) {
@@ -116,24 +80,30 @@ class PinjamanAPI {
 
     try {
       if (method === 'GET') {
-        const url = `${apiUrl}?action=${encodeURIComponent(action)}`;
-        const result = await this.fetchJsonp(url);
+        const url = new URL(apiUrl);
+        url.searchParams.set('action', action);
+        url.searchParams.set('_t', Date.now()); // Mencegah browser simpan cache lama
+        
+        const response = await fetch(url.toString(), {
+          method: 'GET',
+          redirect: 'follow'
+        });
+        
+        const result = await response.json();
         this.syncCache(action, result);
         return result;
       } else {
-        // Kirim data via fetch POST
-        const res = await fetch(apiUrl, {
+        // Operasi POST untuk simpan / ubah data
+        const response = await fetch(apiUrl, {
           method: 'POST',
           mode: 'no-cors',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
           body: JSON.stringify({ action: action, data: data })
         });
-        
-        // Update state lokal
         return this.handleLocalOperation(action, data);
       }
     } catch (err) {
-      console.warn(`[PinjamanAPI] Gagal fetch online (${action}), beralih ke cache lokal:`, err);
+      console.warn(`[PinjamanAPI] Gagal request online (${action}):`, err);
       return this.handleLocalOperation(action, data);
     }
   }
