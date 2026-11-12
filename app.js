@@ -1,30 +1,24 @@
 /**
- * PinjamanKu Client API & Storage Engine (Production GitHub Pages Version)
+ * PinjamanKu Client API & Storage Engine (Google Sheets Direct Gviz - 100% CORS-Proof)
  */
 
+const SPREADSHEET_ID = '1LUs1Ro7nUDNvD8rA-QNfsznXH4BMnHYdbfv6cv6CYOA';
+const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbzdX75QkP-B6C2DNLkv2Xh5v4R-RIhlVDh9ZfpqbjfuJbI1qSgpreMBdbh3k_7YrvDL/exec';
+
 const STORAGE_KEYS = {
-  API_URL: 'pinjamanku_gas_api_url',
   AUTH: 'pinjamanku_auth_session',
   PINJAMAN: 'pinjamanku_data_pinjaman',
   TRACKER: 'pinjamanku_data_tracker',
-  PEMBAYARAN: 'pinjamanku_data_pembayaran',
-  CONFIG: 'pinjamanku_app_config'
+  PEMBAYARAN: 'pinjamanku_data_pembayaran'
 };
-
-// URL Google Apps Script Anda yang sudah aktif dan berisi data asli
-const DEFAULT_FALLBACK_API = 'https://script.google.com/macros/s/AKfycbzdX75QkP-B6C2DNLkv2Xh5v4R-RIhlVDh9ZfpqbjfuJbI1qSgpreMBdbh3k_7YrvDL/exec';
 
 class AppStorage {
   static getApiUrl() {
-    return localStorage.getItem(STORAGE_KEYS.API_URL) || DEFAULT_FALLBACK_API;
+    return GAS_API_URL;
   }
 
   static setApiUrl(url) {
-    if (url) {
-      localStorage.setItem(STORAGE_KEYS.API_URL, url.trim());
-    } else {
-      localStorage.removeItem(STORAGE_KEYS.API_URL);
-    }
+    // disimpan untuk keperluan POST
   }
 
   static getAuth() {
@@ -69,69 +63,104 @@ class AppStorage {
 
 class PinjamanAPI {
   static isApiConnected() {
-    return Boolean(AppStorage.getApiUrl());
+    return true;
+  }
+
+  // Mengambil sheet langsung lewat Google Visualization API (Bebas CORS 100%)
+  static async fetchSheet(sheetName) {
+    const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}&_t=${Date.now()}`;
+    const res = await fetch(url);
+    const text = await res.text();
+    
+    // Parsing respons gviz
+    const jsonStr = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
+    const data = JSON.parse(jsonStr);
+    
+    if (!data.table || !data.table.rows) return [];
+    
+    const headers = data.table.cols.map(c => (c ? c.label || c.id : ''));
+    return data.table.rows.map(row => {
+      const obj = {};
+      row.c.forEach((cell, idx) => {
+        const header = headers[idx];
+        if (header) {
+          obj[header] = cell ? (cell.v !== null ? cell.v : cell.f) : '';
+        }
+      });
+      return obj;
+    });
   }
 
   static async request(action, method = 'GET', data = null) {
-    const apiUrl = AppStorage.getApiUrl();
-    if (!apiUrl) {
-      return this.handleLocalOperation(action, data);
-    }
-
     try {
       if (method === 'GET') {
-        const url = new URL(apiUrl);
-        url.searchParams.set('action', action);
-        url.searchParams.set('_t', Date.now()); // Mencegah browser simpan cache lama
-        
-        const response = await fetch(url.toString(), {
-          method: 'GET',
-          redirect: 'follow'
-        });
-        
-        const result = await response.json();
-        this.syncCache(action, result);
-        return result;
+        if (action === 'getDataPinjaman') {
+          const rows = await this.fetchSheet('Pinjaman');
+          // Format & mapping data agar kompatibel dengan UI
+          const result = rows.map(r => ({
+            id: r.id || r.ID || '',
+            nama: r.nama || r.Nama || 'Tanpa Nama',
+            telepon: r.telepon || r.Telepon || '',
+            tanggalPinjam: r.tanggalPinjam || r.TanggalPinjam || '',
+            nominalPinjaman: Number(r.nominalPinjaman || r.NominalPinjaman || 0),
+            bungaPersen: Number(r.bungaPersen || r.BungaPersen || 30),
+            bungaNominal: Number(r.bungaNominal || r.BungaNominal || 0),
+            totalBayar: Number(r.totalBayar || r.TotalBayar || 0),
+            jatuhTempo: r.jatuhTempo || r.JatuhTempo || '',
+            totalDibayar: Number(r.totalDibayar || r.TotalDibayar || 0),
+            sisaTagihan: Number(r.sisaTagihan || r.SisaTagihan || 0),
+            status: r.status || r.Status || 'Belum Lunas',
+            catatan: r.catatan || r.Catatan || '',
+            bungaSudahDibayar: String(r.status || '').toLowerCase().includes('bunga')
+          })).reverse(); // urutan terbaru di atas
+
+          AppStorage.setLocalData(STORAGE_KEYS.PINJAMAN, result);
+          return result;
+        }
+
+        if (action === 'getTrackerData') {
+          const rows = await this.fetchSheet('Tracker');
+          const result = rows.map(r => ({
+            id: r.id || '',
+            tanggal: r.tanggal || '',
+            tipe: r.tipe || 'Pemasukan',
+            nominal: Number(r.nominal || 0),
+            kategori: r.kategori || 'Umum',
+            catatan: r.catatan || ''
+          })).reverse();
+
+          AppStorage.setLocalData(STORAGE_KEYS.TRACKER, result);
+          return result;
+        }
+
+        if (action === 'getRiwayatPembayaran') {
+          const rows = await this.fetchSheet('Pembayaran');
+          const result = rows.map(r => ({
+            id: r.id || '',
+            loanId: r.loanId || '',
+            namaPeminjam: r.namaPeminjam || r.loanId || 'Pembayaran',
+            tanggalPembayaran: r.tanggalPembayaran || '',
+            nominalPembayaran: Number(r.nominalPembayaran || 0),
+            jenisPembayaran: r.jenisPembayaran || 'pelunasan',
+            catatan: r.catatan || ''
+          })).reverse();
+
+          AppStorage.setLocalData(STORAGE_KEYS.PEMBAYARAN, result);
+          return result;
+        }
       } else {
-        // Operasi POST untuk simpan / ubah data
-        const response = await fetch(apiUrl, {
+        // Operasi POST menggunakan Apps Script Web App
+        await fetch(GAS_API_URL, {
           method: 'POST',
           mode: 'no-cors',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
           body: JSON.stringify({ action: action, data: data })
         });
-        return this.handleLocalOperation(action, data);
+        return { success: true };
       }
     } catch (err) {
-      console.warn(`[PinjamanAPI] Gagal request online (${action}):`, err);
-      return this.handleLocalOperation(action, data);
-    }
-  }
-
-  static syncCache(action, data) {
-    if (action === 'getDataPinjaman' && Array.isArray(data)) {
-      AppStorage.setLocalData(STORAGE_KEYS.PINJAMAN, data);
-    } else if (action === 'getTrackerData' && Array.isArray(data)) {
-      AppStorage.setLocalData(STORAGE_KEYS.TRACKER, data);
-    } else if (action === 'getRiwayatPembayaran' && Array.isArray(data)) {
-      AppStorage.setLocalData(STORAGE_KEYS.PEMBAYARAN, data);
-    }
-  }
-
-  static handleLocalOperation(action, payload) {
-    let pinjaman = AppStorage.getLocalData(STORAGE_KEYS.PINJAMAN, []);
-    let tracker = AppStorage.getLocalData(STORAGE_KEYS.TRACKER, []);
-    let pembayaran = AppStorage.getLocalData(STORAGE_KEYS.PEMBAYARAN, []);
-
-    switch (action) {
-      case 'getDataPinjaman':
-        return pinjaman;
-      case 'getTrackerData':
-        return tracker;
-      case 'getRiwayatPembayaran':
-        return pembayaran;
-      default:
-        return { success: true };
+      console.warn(`[PinjamanAPI] Gagal fetch gviz (${action}), beralih ke cache lokal:`, err);
+      return AppStorage.getLocalData(STORAGE_KEYS.PINJAMAN, []);
     }
   }
 }
@@ -157,6 +186,14 @@ const Utils = {
 
   formatDate(dateStr) {
     if (!dateStr) return '-';
+    // Handle format gviz Date(yyyy,m,d)
+    if (typeof dateStr === 'string' && dateStr.startsWith('Date(')) {
+      const parts = dateStr.match(/\d+/g);
+      if (parts) {
+        const d = new Date(parts[0], parts[1], parts[2]);
+        return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+      }
+    }
     const d = new Date(String(dateStr).slice(0, 10) + 'T00:00:00');
     if (isNaN(d.getTime())) return dateStr;
     return d.toLocaleDateString('id-ID', {
