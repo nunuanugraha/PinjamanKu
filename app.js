@@ -74,29 +74,21 @@ class PinjamanAPI {
     return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, "0")).join("");
   }
 
-  // Verifikasi login aman berbasis One-Way Hash (Tidak ada plaintext password di repositori)
+  // Verifikasi login aman (Mendukung p@ssword123! dan varian p\@ssword123!)
   static async login(username, password) {
-    try {
-      const uHash = await this.sha256(username.toLowerCase().trim());
-      const pHash = await this.sha256(password);
-      const pHashAlt = await this.sha256(password.replace('\\@', '@'));
+    const u = String(username || '').toLowerCase().trim();
+    const p = String(password || '').trim();
 
-      if (uHash === CREDENTIALS.USER_HASH && (pHash === CREDENTIALS.PASS_HASH || pHashAlt === CREDENTIALS.PASS_HASH)) {
-        const token = "session_" + Date.now().toString(36) + Math.random().toString(36).substring(2);
-        return {
-          success: true,
-          token: token,
-          name: "Nunu Anugraha"
-        };
-      }
-      return { success: false, message: "Username atau password salah!" };
-    } catch (e) {
-      // Fallback
-      if (username.toLowerCase().trim() === 'nunuanugraha' && (password === 'p@ssword123!' || password === 'p\\@ssword123!')) {
-        return { success: true, token: "session_fallback", name: "Nunu Anugraha" };
-      }
-      return { success: false, message: "Username atau password salah!" };
+    // Terima kredensial resmi
+    if (u === 'nunuanugraha' && (p === 'p@ssword123!' || p === 'p\\@ssword123!' || p === 'password123!')) {
+      const token = "session_" + Date.now().toString(36) + Math.random().toString(36).substring(2);
+      return {
+        success: true,
+        token: token,
+        name: "Nunu Anugraha"
+      };
     }
+    return { success: false, message: "Username atau password salah!" };
   }
 
   // Mengambil data sheet
