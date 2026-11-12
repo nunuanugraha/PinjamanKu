@@ -1,0 +1,1661 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PinjamanKu</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8fafc; /* Lighter, modern background */
+      color: #1e293b;
+      overscroll-behavior-y: none; 
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    @supports (padding: max(0px)) {
+      body {
+        padding-top: max(1rem, env(safe-area-inset-top));
+        padding-bottom: max(1rem, env(safe-area-inset-bottom));
+        padding-left: max(1rem, env(safe-area-inset-left));
+        padding-right: max(1rem, env(safe-area-inset-right));
+      }
+    }
+
+    /* 3. Mencegah Zoom Otomatis di iPhone saat klik form input */
+    input[type="text"], input[type="date"], select, textarea {
+      font-size: 16px !important; 
+    }
+
+    /* 4. Smooth Scrolling Ekstra untuk Tabel di Layar Sentuh */
+    .overflow-x-auto {
+      -webkit-overflow-scrolling: touch; 
+    }
+
+    /* Sembunyikan scrollbar horizontal di mobile agar lebih elegan (bisa digeser pakai jari) */
+    @media (max-width: 768px) {
+      .overflow-x-auto::-webkit-scrollbar {
+        display: none;
+      }
+      .overflow-x-auto {
+        scrollbar-width: none;
+      }
+      
+      /* Perkecil padding modal di layar HP agar ruang lebih lega */
+      .bg-white.rounded-\\[2rem\\] {
+        padding: 1.5rem;
+      }
+    }
+    
+    /* Bubble UI Classes */
+    .bubble-card {
+      background: #ffffff;
+      border-radius: 1.5rem; /* Rounded corners for bubble effect */
+      box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.05);
+      border: 1px solid rgba(241, 245, 249, 1);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .bubble-card:hover {
+      box-shadow: 0 15px 40px -10px rgba(0, 0, 0, 0.08);
+    }
+
+    .bubble-btn {
+      border-radius: 9999px; /* Pill-shaped buttons */
+      transition: all 0.2s ease;
+    }
+
+    .bubble-input {
+      border-radius: 1rem;
+      background-color: #f1f5f9;
+      border: 2px solid transparent;
+      transition: all 0.2s ease;
+    }
+
+    .bubble-input:focus {
+      background-color: #ffffff;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+    }
+
+    /* Status Badges */
+    .status-badge { padding: 0.35rem 0.8rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; display: inline-block;}
+    .status-lunas { background-color: #d1fae5; color: #059669; }
+    .status-belum { background-color: #e0f2fe; color: #0284c7; }
+    .status-terlambat { background-color: #fee2e2; color: #e11d48; }
+    .status-bunga { background-color: #fef3c7; color: #92400e; }
+
+    /* Custom Scrollbar for modern look */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  </style>
+
+
+  <style id="antislop-modern-ui">
+    :root {
+      color-scheme: light;
+      --app-bg: #f4f7fb;
+      --surface: #ffffff;
+      --ink: #172033;
+      --muted: #667085;
+      --line: #e7edf5;
+      --brand: #315cf5;
+      --brand-dark: #2447cf;
+      --radius-card: 22px;
+      --shadow-card: 0 8px 30px rgba(21, 37, 75, .055), 0 1px 2px rgba(21, 37, 75, .035);
+    }
+
+    html { scroll-behavior: smooth; background: var(--app-bg); }
+    body {
+      min-height: 100vh !important;
+      height: auto !important;
+      overflow-x: hidden;
+      background:
+        radial-gradient(ellipse at 8% 0%, rgba(72, 111, 255, .09), transparent 32rem),
+        radial-gradient(ellipse at 96% 14%, rgba(25, 184, 166, .07), transparent 28rem),
+        var(--app-bg) !important;
+      color: var(--ink);
+      padding: clamp(14px, 2.5vw, 34px) !important;
+      line-height: 1.5;
+    }
+
+    body > .max-w-7xl { max-width: 1440px; margin-inline: auto; }
+    .bubble-card {
+      background: rgba(255,255,255,.94);
+      border: 1px solid rgba(225,232,243,.92);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-card);
+      transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+    }
+    .bubble-card:hover { box-shadow: 0 12px 34px rgba(21,37,75,.075), 0 2px 5px rgba(21,37,75,.025); }
+
+    header.bubble-card {
+      position: relative;
+      align-items: center;
+      gap: 24px;
+      padding: clamp(20px, 3vw, 32px) !important;
+      overflow: hidden;
+      background: linear-gradient(115deg, #fff 0%, #fff 60%, #f4f7ff 100%);
+      border-color: #e4eafa;
+    }
+    header.bubble-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 4px;
+      background: linear-gradient(180deg, #315cf5, #38bdf8);
+    }
+    header .w-12.h-12 {
+      width: 54px !important; height: 54px !important;
+      border-radius: 17px !important;
+      background: linear-gradient(145deg, #eaf0ff, #dce6ff) !important;
+      box-shadow: none !important;
+    }
+    header h1 { font-size: clamp(1.45rem, 2vw, 1.8rem) !important; letter-spacing: -.045em !important; }
+    header p { margin-top: 3px; color: #738099 !important; }
+    header > div:last-child { flex-wrap: wrap; justify-content: flex-end; }
+    .bubble-btn {
+      min-height: 44px;
+      border-radius: 13px !important;
+      font-weight: 650;
+      letter-spacing: -.01em;
+      transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease;
+    }
+    .bubble-btn:hover { transform: translateY(-1px); }
+    .bubble-btn:active { transform: translateY(0); }
+    header button { min-height: 44px; padding-inline: 16px !important; }
+    header button:last-child {
+      box-shadow: 0 7px 18px rgba(49,92,245,.20) !important;
+    }
+
+    /* Summary metrics */
+    .grid.grid-cols-1.sm\\:grid-cols-2.lg\\:grid-cols-3.xl\\:grid-cols-5 {
+      gap: 16px !important;
+    }
+    .grid > .bubble-card {
+      position: relative;
+      min-width: 0;
+      padding: 22px !important;
+      gap: 15px;
+      border-radius: 19px;
+      overflow: hidden;
+    }
+    .grid > .bubble-card::after {
+      content: "";
+      position: absolute;
+      right: -22px; top: -25px;
+      width: 82px; height: 82px;
+      border-radius: 50%;
+      background: currentColor;
+      opacity: .035;
+      pointer-events: none;
+    }
+    .grid > .bubble-card .w-11.h-11 {
+      width: 46px !important; height: 46px !important;
+      border-radius: 15px !important;
+    }
+    .grid > .bubble-card span:first-child {
+      letter-spacing: .01em;
+      line-height: 1.35;
+    }
+    .grid > .bubble-card span[id^="dash"] {
+      font-size: clamp(1.05rem, 1.35vw, 1.35rem) !important;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Data table and search tools */
+    .bubble-card.overflow-hidden { overflow: hidden; }
+    .bubble-card.overflow-hidden > div:first-child {
+      padding: clamp(20px, 2.6vw, 30px) !important;
+      background: linear-gradient(180deg, #fff, #fcfdff);
+    }
+    #inputSearch, #btnFilterTrigger, #btnFilterRiwayat, .bubble-input {
+      min-height: 46px;
+      border: 1px solid #e2e8f2 !important;
+      border-radius: 13px !important;
+      background-color: #f8faff !important;
+      box-shadow: inset 0 1px 1px rgba(20,40,80,.015);
+    }
+    #inputSearch:focus, #btnFilterTrigger:focus-visible, #btnFilterRiwayat:focus-visible, .bubble-input:focus {
+      background: #fff !important;
+      border-color: #7c9aff !important;
+      box-shadow: 0 0 0 4px rgba(49,92,245,.11) !important;
+      outline: none;
+    }
+    #inputSearch { padding-block: 12px !important; }
+    table { border-collapse: separate; border-spacing: 0; }
+    thead th {
+      background: #f6f8fc !important;
+      color: #65718a !important;
+      font-size: .72rem;
+      text-transform: uppercase;
+      letter-spacing: .055em;
+      font-weight: 750 !important;
+      border-bottom: 1px solid #e9eef6;
+    }
+    tbody tr { transition: background-color .16s ease; }
+    tbody tr:hover { background: #f8faff !important; }
+    tbody td { border-bottom-color: #edf1f7 !important; }
+    tbody tr:last-child td { border-bottom: 0 !important; }
+    .status-badge { padding: 6px 11px; font-size: .73rem; letter-spacing: .01em; }
+    .status-lunas { background: #e5f8ef; color: #087b50; }
+    .status-belum { background: #eaf1ff; color: #2452c8; }
+    .status-terlambat { background: #fff0f0; color: #c53045; }
+    .status-bunga { background: #fff7df; color: #956000; }
+    #paginationInfo { font-size: .82rem; }
+    #paginationControls button { width: 40px !important; height: 40px !important; border-radius: 12px !important; }
+
+    /* Dialogs */
+    [id^="modal"] {
+      padding: 16px;
+      overscroll-behavior: contain;
+    }
+    [id^="modal"] > div {
+      max-height: min(90dvh, 850px);
+      overflow-y: auto;
+      border: 1px solid rgba(225,232,243,.95);
+      border-radius: 24px !important;
+      box-shadow: 0 24px 80px rgba(13,25,52,.22) !important;
+    }
+    [id^="modal"] button[onclick*="initModalClose"],
+    [id^="modal"] button[onclick*="initClose"] {
+      min-width: 40px; min-height: 40px;
+    }
+    form label { color: #344054 !important; }
+    form input, form textarea { width: 100%; }
+    form input, form textarea, form select { transition: border-color .18s ease, box-shadow .18s ease; }
+    form input:focus-visible, form textarea:focus-visible {
+      outline: none;
+      border-color: #7c9aff !important;
+      box-shadow: 0 0 0 4px rgba(49,92,245,.11);
+    }
+    #modalRiwayat > div { width: min(100%, 1000px); }
+    #modalRiwayat table { min-width: 600px; }
+
+    button:disabled { opacity: .65; cursor: wait; transform: none !important; }
+    button:focus-visible, a:focus-visible, [role="button"]:focus-visible {
+      outline: 3px solid rgba(49,92,245,.55);
+      outline-offset: 3px;
+    }
+    ::selection { background: #dce6ff; color: #1d3a9b; }
+    ::-webkit-scrollbar { width: 9px; height: 9px; }
+    ::-webkit-scrollbar-thumb { background: #c5cfdf; border: 2px solid transparent; background-clip: padding-box; border-radius: 999px; }
+
+    @media (max-width: 1024px) {
+      header.bubble-card { align-items: flex-start; }
+      header > div:last-child { justify-content: flex-start; width: 100%; }
+      header button { flex: 1 1 150px; }
+    }
+    @media (max-width: 640px) {
+      body { padding: 12px !important; }
+      body > .max-w-7xl { gap: 18px !important; }
+      header.bubble-card { padding: 19px !important; gap: 18px; border-radius: 20px; }
+      header .mb-4 { margin-bottom: 0 !important; }
+      header > div:first-child { align-items: center; }
+      header > div:last-child { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px !important; }
+      header button { width: 100% !important; min-width: 0; padding: 11px 10px !important; font-size: .82rem; white-space: normal; }
+      header button:last-child { grid-column: 1 / -1; }
+      .grid.grid-cols-1.sm\\:grid-cols-2.lg\\:grid-cols-3.xl\\:grid-cols-5 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px !important; }
+      .grid > .bubble-card { padding: 15px !important; gap: 10px; align-items: flex-start; flex-direction: column; border-radius: 17px; }
+      .grid > .bubble-card .w-11.h-11 { width: 38px !important; height: 38px !important; border-radius: 12px !important; }
+      .grid > .bubble-card span:first-child { white-space: normal; }
+      .grid > .bubble-card span[id^="dash"] { font-size: 1rem !important; overflow-wrap: anywhere; }
+      .bubble-card.overflow-hidden > div:first-child { align-items: stretch; }
+      #inputSearch { width: 100%; }
+      .bubble-card.overflow-hidden > div:first-child > div:last-child { width: 100%; }
+      .bubble-card.overflow-hidden > div:first-child > div:last-child > div { width: 100%; }
+      table { font-size: .82rem !important; }
+      th, td { padding: 13px 14px !important; }
+      .bubble-card.overflow-hidden > div:last-child { padding: 17px !important; align-items: flex-start; }
+      [id^="modal"] { padding: 10px; }
+      [id^="modal"] > div { padding: 21px !important; border-radius: 21px !important; }
+      #modalRiwayat > div { padding: 18px !important; }
+      #modalRiwayat .mb-6.flex { flex-wrap: wrap; }
+      #modalRiwayat .mb-6.flex > div { max-width: 100%; }
+      form .grid.grid-cols-2 { grid-template-columns: minmax(0, 1fr); }
+      [id^="modal"] .mt-8.flex { flex-wrap: wrap; }
+      [id^="modal"] .mt-8.flex button { flex: 1 1 130px; }
+    }
+    @media (max-width: 360px) {
+      .grid.grid-cols-1.sm\\:grid-cols-2.lg\\:grid-cols-3.xl\\:grid-cols-5 { grid-template-columns: minmax(0, 1fr); }
+      header > div:last-child { grid-template-columns: minmax(0, 1fr); }
+      header button:last-child { grid-column: auto; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+#inputJenisPembayaran {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  background-color: rgba(255, 255, 255, 0.85);
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  color: #1e293b;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#inputJenisPembayaran:focus {
+  border-color: #6366f1;
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
+
+#inputJenisPembayaran option {
+  background-color: #ffffff;
+  color: #1e293b;
+  padding: 12px;
+}
+.custom-payment-dropdown {
+  position: relative;
+  width: 100%;
+}
+
+.custom-payment-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 13px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: rgba(255,255,255,.85);
+  color: #1e293b;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  transition: .2s ease;
+}
+
+.custom-payment-trigger:hover,
+.custom-payment-dropdown.open .custom-payment-trigger {
+  border-color: #818cf8;
+  box-shadow: 0 0 0 3px rgba(99,102,241,.1);
+}
+
+.payment-chevron {
+  transition: transform .2s ease;
+}
+
+.custom-payment-dropdown.open .payment-chevron {
+  transform: rotate(180deg);
+}
+
+.custom-payment-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  padding: 6px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 12px 30px rgba(15,23,42,.14);
+}
+
+.custom-payment-dropdown.open .custom-payment-menu {
+  display: grid;
+  gap: 4px;
+  animation: paymentFadeIn .16s ease;
+}
+
+.custom-payment-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: #334155;
+  text-align: left;
+  cursor: pointer;
+  transition: .15s ease;
+}
+
+.custom-payment-option:hover {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.custom-payment-option.active {
+  background: #eef2ff;
+  border-color: #c7d2fe;
+}
+
+.option-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: #f1f5f9;
+  color: #475569;
+  font-weight: 700;
+}
+
+.custom-payment-option.active .option-icon {
+  background: #6366f1;
+  color: white;
+}
+
+.option-text {
+  display: grid;
+  flex: 1;
+  gap: 4px;
+}
+
+.option-text strong {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.option-text small {
+  color: #64748b;
+  font-size: 11px;
+}
+
+.option-check {
+  display: none;
+  color: #4f46e5;
+  font-weight: 700;
+}
+
+.custom-payment-option.active .option-check {
+  display: block;
+}
+
+@keyframes paymentFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+  </style>
+
+ <script>
+    const BASE_APP_URL = "<?= BASE_APP_URL ?>";
+    const AUTH_TOKEN = "<?= AUTH_TOKEN ?>";
+  </script>
+</head>
+<body class="p-4 md:p-8 h-screen overflow-auto">
+
+  <div class="max-w-7xl mx-auto space-y-8">
+    <header class="flex flex-col md:flex-row justify-between items-center bubble-card p-6 md:p-8">
+      <div class="mb-4 md:mb-0 flex items-center gap-4">
+        <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-2xl shadow-sm">
+          <i class="ph-fill ph-wallet"></i>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold text-slate-800 tracking-tight">PinjamanKu</h1>
+          <p class="text-sm text-slate-500 font-medium">Monitoring Piutang & Cicilan</p>
+        </div>
+      </div>
+      <div class="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
+        <button onclick="initNavToDashboard()" class="bubble-btn bg-slate-100 hover:bg-slate-200 text-slate-700 px-5 py-3 font-semibold flex items-center gap-2 w-full md:w-auto justify-center"><i class="ph-bold ph-squares-four text-xl"></i> Dashboard</button>
+        <button onclick="initNavToCalculator()" class="bubble-btn bg-violet-50 hover:bg-violet-100 text-violet-700 px-5 py-3 font-semibold flex items-center gap-2 w-full md:w-auto justify-center"><i class="ph-bold ph-calculator text-xl"></i> Kalkulator</button>
+        <button onclick="initOpenRiwayat()" class="bubble-btn bg-slate-100 hover:bg-slate-200 text-slate-700 px-6 py-3 font-semibold transition-colors flex items-center gap-2 w-full md:w-auto justify-center">
+          <i class="ph-bold ph-clock-counter-clockwise text-xl"></i> Riwayat
+        </button>
+        <button onclick="initLogout()" class="bubble-btn bg-rose-50 hover:bg-rose-100 text-rose-600 px-5 py-3 font-semibold transition-colors flex items-center gap-2 w-full md:w-auto justify-center">
+          <i class="ph-bold ph-sign-out text-xl"></i> Keluar
+        </button>
+        <button onclick="initModalOpen('modalTambah')" class="bubble-btn bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 font-semibold shadow-lg shadow-blue-500/30 flex items-center gap-2 w-full md:w-auto justify-center">
+          <i class="ph ph-plus-circle text-xl"></i> Tambah Pinjaman
+        </button>
+        <button onclick="initNavToTracker()" class="bubble-btn bg-indigo-50 hover:bg-indigo-100 text-indigo-600   px-5 py-3 font-semibold transition-colors flex items-center gap-2 w-full md:w-auto justify-center">
+          <i class="ph-bold ph-chart-line-up text-xl"></i> FinanceFlow
+        </button>
+      </div>
+    </header>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 md:gap-5">
+      
+      <div class="bubble-card p-5 flex items-center gap-4">
+        <div class="w-11 h-11 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-500 text-xl shrink-0"><i class="ph-fill ph-coins"></i></div>
+        <div class="flex flex-col min-w-0 w-full">
+          <span class="text-xs font-semibold text-slate-500 mb-1 truncate" title="Total Piutang Aktif">Total Piutang Aktif</span>
+          <span class="text-lg font-bold text-slate-800 tracking-tight break-words leading-tight" id="dashPiutangAktif">Rp0</span>
+        </div>
+      </div>
+      
+      <div class="bubble-card p-5 flex items-center gap-4">
+        <div class="w-11 h-11 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-500 text-xl shrink-0"><i class="ph-fill ph-trend-up"></i></div>
+        <div class="flex flex-col min-w-0 w-full">
+          <span class="text-xs font-semibold text-slate-500 mb-1 truncate" title="Total Bunga Berjalan">Total Bunga Berjalan</span>
+          <span class="text-lg font-bold text-emerald-600 tracking-tight break-words leading-tight" id="dashBunga">Rp0</span>
+        </div>
+      </div>
+      
+      <div class="bubble-card p-5 flex items-center gap-4 border-2 border-amber-100 bg-gradient-to-br from-white to-amber-50">
+        <div class="w-11 h-11 rounded-2xl bg-amber-100 flex items-center justify-center text-amber-600 text-xl shadow-inner shrink-0"><i class="ph-fill ph-vault"></i></div>
+        <div class="flex flex-col min-w-0 w-full">
+          <span class="text-xs font-semibold text-amber-700 mb-1 truncate" title="Keuntungan Bersih">Keuntungan Bersih</span>
+          <span class="text-lg font-bold text-slate-800 tracking-tight break-words leading-tight" id="dashKeuntungan">Rp0</span>
+        </div>
+      </div>
+      
+      <div class="bubble-card p-5 flex items-center gap-4">
+        <div class="w-11 h-11 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-500 text-xl shrink-0"><i class="ph-fill ph-users"></i></div>
+        <div class="flex flex-col min-w-0 w-full">
+          <span class="text-xs font-semibold text-slate-500 mb-1 truncate" title="Peminjam Aktif">Peminjam Aktif</span>
+          <span class="text-lg font-bold text-slate-800 tracking-tight break-words leading-tight" id="dashPeminjam">0</span>
+        </div>
+      </div>
+      
+      <div class="bubble-card p-5 flex items-center gap-4">
+        <div class="w-11 h-11 rounded-2xl bg-rose-50 flex items-center justify-center text-rose-500 text-xl shrink-0"><i class="ph-fill ph-warning-circle"></i></div>
+        <div class="flex flex-col min-w-0 w-full">
+          <span class="text-xs font-semibold text-slate-500 mb-1 truncate" title="Pinjaman Terlambat">Pinjaman Terlambat</span>
+          <span class="text-lg font-bold text-rose-600 tracking-tight break-words leading-tight" id="dashTerlambat">0</span>
+        </div>
+      </div>
+      
+    </div>
+
+    <div class="bubble-card overflow-hidden flex flex-col">
+      <div class="p-6 md:p-8 border-b border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4 bg-white">
+        <h2 class="text-lg font-bold text-slate-800">Daftar Pinjaman</h2>
+        <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+          <div class="relative">
+            <i class="ph ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <input type="text" id="inputSearch" onkeyup="initApplyFilter()" placeholder="Cari nama peminjam..." class="w-full pl-10 pr-4 py-2.5 bubble-input outline-none text-sm text-slate-700 placeholder-slate-400">
+          </div>
+         <div class="relative w-full sm:w-48" id="wrapperFilterStatus">
+            <select id="selectFilter" class="hidden">
+              <option value="all">Semua Status</option>
+              <option value="Belum Lunas">Belum Lunas</option>
+              <option value="Lunas">Lunas</option>
+              <option value="Terlambat">Terlambat</option>
+            </select>
+
+            <button type="button" onclick="initToggleDropdown(event)" id="btnFilterTrigger" class="w-full flex items-center justify-between px-4 py-2.5 bubble-input outline-none text-sm text-slate-700 font-semibold cursor-pointer transition-all">
+              <span id="labelFilterSelected" class="flex items-center gap-2">
+                <i class="ph-fill ph-funnel text-slate-400"></i> Semua Status
+              </span>
+              <i class="ph-bold ph-caret-down text-slate-400 transition-transform duration-200" id="iconFilterCaret"></i>
+            </button>
+
+            <ul id="listFilterOptions" class="absolute z-50 w-full mt-2 bg-white rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border border-slate-100 overflow-hidden hidden transform opacity-0 scale-95 transition-all duration-200 origin-top-right">
+              
+              <li onclick="initSelectOption('all', 'Semua Status', 'ph-funnel', 'text-slate-500')" class="px-4 py-3 hover:bg-slate-50 cursor-pointer text-sm font-semibold text-slate-600 flex items-center gap-3 transition-colors border-b border-slate-50">
+                <div class="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-500"><i class="ph-fill ph-funnel"></i></div> Semua Status
+              </li>
+              
+              <li onclick="initSelectOption('Belum Lunas', 'Belum Lunas', 'ph-clock', 'text-blue-500')" class="px-4 py-3 hover:bg-blue-50 cursor-pointer text-sm font-semibold text-blue-700 flex items-center gap-3 transition-colors border-b border-slate-50">
+                <div class="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-blue-600"><i class="ph-fill ph-clock"></i></div> Belum Lunas
+              </li>
+              
+              <li onclick="initSelectOption('Lunas', 'Lunas', 'ph-check-circle', 'text-emerald-500')" class="px-4 py-3 hover:bg-emerald-50 cursor-pointer text-sm font-semibold text-emerald-700 flex items-center gap-3 transition-colors border-b border-slate-50">
+                <div class="w-7 h-7 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600"><i class="ph-fill ph-check-circle"></i></div> Lunas
+              </li>
+              
+              <li onclick="initSelectOption('Terlambat', 'Terlambat', 'ph-warning-circle', 'text-rose-500')" class="px-4 py-3 hover:bg-rose-50 cursor-pointer text-sm font-semibold text-rose-700 flex items-center gap-3 transition-colors">
+                <div class="w-7 h-7 rounded-full bg-rose-100 flex items-center justify-center text-rose-600"><i class="ph-fill ph-warning-circle"></i></div> Terlambat
+              </li>
+              
+            </ul>
+          </div>
+        </div>
+      </div>
+      
+      <div class="overflow-x-auto w-full">
+        <table class="w-full text-left text-sm whitespace-nowrap">
+          <thead class="bg-slate-50/80 text-slate-500">
+            <tr>
+              <th class="px-8 py-5 font-semibold">Nama Peminjam</th>
+              <th class="px-6 py-5 font-semibold">Tgl Pinjam</th>
+              <th class="px-6 py-5 font-semibold">Jatuh Tempo</th>
+              <th class="px-6 py-5 font-semibold">Nominal Asli</th>
+              <th class="px-6 py-5 font-semibold">Sisa Tagihan</th>
+              <th class="px-6 py-5 font-semibold">Status</th>
+              <th class="px-8 py-5 font-semibold text-center">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody" class="divide-y divide-slate-100 bg-white">
+            <tr><td colspan="7" class="text-center py-10 text-slate-400 font-medium"><i class="ph ph-spinner-gap animate-spin inline-block mr-2"></i> Memuat data...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="p-6 border-t border-slate-100 bg-white flex flex-col sm:flex-row justify-between items-center gap-4">
+        <span class="text-sm font-medium text-slate-500" id="paginationInfo">Menampilkan 0 dari 0 data</span>
+        <div class="flex items-center gap-2" id="paginationControls">
+          </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="modalTambah" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4 transition-opacity">
+    <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-lg p-8 transform transition-all">
+      <div class="flex justify-between items-center mb-6">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600"><i class="ph-fill ph-plus"></i></div>
+          <h3 class="text-xl font-bold text-slate-800">Tambah Pinjaman</h3>
+        </div>
+        <button onclick="initModalClose('modalTambah')" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"><i class="ph ph-x text-lg"></i></button>
+      </div>
+      <form id="formTambah" onsubmit="initSubmitPinjaman(event)">
+        <div class="space-y-5">
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-2">Nama Peminjam</label>
+            <input type="text" id="inputNama" required class="w-full px-4 py-3 bubble-input outline-none text-slate-800">
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-2">Tanggal Pinjam</label>
+              <input type="date" id="inputTanggal" required class="w-full px-4 py-3 bubble-input outline-none text-slate-800">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-2">No. WhatsApp</label>
+              <input type="text" id="inputTelepon" placeholder="08..." class="w-full px-4 py-3 bubble-input outline-none text-slate-800">
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-2">Nominal Pinjaman (Rp)</label>
+              <input type="text" id="inputNominal" oninput="initFormatInputRibuan(this)" required placeholder="Contoh: 1.000.000" class="w-full px-4 py-3 bubble-input outline-none text-slate-800">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-2">Bunga (%)</label>
+              <input type="number" id="inputBunga" value="30" required min="0" step="0.1" class="w-full px-4 py-3 bubble-input outline-none text-slate-800">
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-2">Catatan Tambahan</label>
+            <textarea id="inputCatatan" rows="2" class="w-full px-4 py-3 bubble-input outline-none text-slate-800 resize-none"></textarea>
+          </div>
+        </div>
+        <div class="mt-8 flex justify-end gap-3">
+          <button type="button" onclick="initModalClose('modalTambah')" class="bubble-btn px-6 py-2.5 text-slate-600 bg-slate-100 hover:bg-slate-200 font-semibold transition-colors">Batal</button>
+          <button type="submit" id="btnSubmit" class="bubble-btn px-6 py-2.5 text-white bg-blue-600 hover:bg-blue-700 font-semibold shadow-lg shadow-blue-500/30 transition-all">Simpan Pinjaman</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="modalCicil" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4 transition-opacity">
+    <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-lg p-8 transform transition-all">
+      <div class="flex justify-between items-center mb-6">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600"><i class="ph-fill ph-hand-coins"></i></div>
+          <h3 class="text-xl font-bold text-slate-800">Catat Pembayaran</h3>
+        </div>
+        <button onclick="initModalClose('modalCicil')" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"><i class="ph ph-x text-lg"></i></button>
+      </div>
+      <div class="mb-6 p-5 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border border-blue-100 shadow-inner">
+        <p class="text-sm text-blue-800 font-semibold" id="infoPeminjam">Nama Peminjam</p>
+        <div class="flex items-baseline gap-2 mt-1">
+          <p class="text-slate-500 text-sm font-medium">Sisa Tagihan:</p>
+          <p class="text-2xl font-bold text-slate-800 tracking-tight" id="infoSisaTagihan">Rp0</p>
+        </div>
+      </div>
+      <form id="formCicil" onsubmit="initSubmitCicilan(event)">
+        <input type="hidden" id="inputLoanId">
+        <div class="space-y-5">
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-2">Tanggal Pembayaran</label>
+            <input type="date" id="inputTanggalBayar" required class="w-full px-4 py-3 bubble-input outline-none text-slate-800">
+          </div>
+<div>
+  <label class="block text-sm font-semibold text-slate-700 mb-2">
+    Jenis Pembayaran
+  </label>
+
+  <div class="custom-payment-dropdown" id="paymentDropdown">
+    <button
+      type="button"
+      class="custom-payment-trigger"
+      onclick="togglePaymentDropdown()"
+    >
+      <span id="selectedPayment">Bayar bunga saja</span>
+      <svg class="payment-chevron" width="18" height="18"
+        viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="2">
+        <path d="m6 9 6 6 6-6"/>
+      </svg>
+    </button>
+
+    <div class="custom-payment-menu" id="paymentMenu">
+      <button type="button" class="custom-payment-option active"
+        onclick="pilihPembayaran('bunga', 'Bayar bunga saja')">
+        <span class="option-icon">%</span>
+        <span class="option-text">
+          <strong>Bayar bunga saja</strong>
+          <small>Bayar bunga, pinjaman tetap aktif</small>
+        </span>
+        <span class="option-check">✓</span>
+      </button>
+
+      <button type="button" class="custom-payment-option"
+        onclick="pilihPembayaran('pelunasan', 'Pelunasan penuh')">
+        <span class="option-icon">✓</span>
+        <span class="option-text">
+          <strong>Pelunasan penuh</strong>
+          <small>Bayar seluruh sisa tagihan</small>
+        </span>
+        <span class="option-check">✓</span>
+      </button>
+    </div>
+  </div>
+
+  <input type="hidden" id="inputJenisPembayaran" value="bunga">
+
+  <p id="hintJenisPembayaran"
+    class="mt-2 text-xs leading-5 text-slate-500">
+    Pembayaran bunga tidak mengurangi sisa tagihan.
+  </p>
+</div>
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-2">Nominal Pembayaran (Rp)</label>
+            <input type="text" id="inputNominalBayar" oninput="initFormatInputRibuan(this)" required placeholder="Contoh: 300.000" class="w-full px-4 py-3 bubble-input outline-none text-slate-800">
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-2">Keterangan / Via</label>
+            <textarea id="inputCatatanBayar" rows="2" placeholder="Contoh: Transfer Bank BCA..." class="w-full px-4 py-3 bubble-input outline-none text-slate-800 resize-none"></textarea>
+          </div>
+        </div>
+        <div class="mt-8 flex justify-end gap-3">
+          <button type="button" onclick="initModalClose('modalCicil')" class="bubble-btn px-6 py-2.5 text-slate-600 bg-slate-100 hover:bg-slate-200 font-semibold transition-colors">Batal</button>
+          <button type="submit" id="btnSubmitCicil" class="bubble-btn px-6 py-2.5 text-white bg-emerald-600 hover:bg-emerald-700 font-semibold shadow-lg shadow-emerald-500/30 transition-all">Proses Cicilan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="modalEdit" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4 transition-opacity">
+    <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-lg p-8 transform transition-all">
+      <div class="flex justify-between items-center mb-6">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center text-amber-600"><i class="ph-fill ph-pencil-simple"></i></div>
+          <h3 class="text-xl font-bold text-slate-800">Ubah Data</h3>
+        </div>
+        <button onclick="initModalClose('modalEdit')" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"><i class="ph ph-x text-lg"></i></button>
+      </div>
+      <form id="formEdit" onsubmit="initSubmitEdit(event)">
+        <input type="hidden" id="editId">
+        <div class="space-y-5">
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-2">Nama Peminjam</label>
+            <input type="text" id="editNama" required class="w-full px-4 py-3 bubble-input outline-none text-slate-800">
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-2">Tanggal Pinjam</label>
+              <input type="date" id="editTanggal" required class="w-full px-4 py-3 bubble-input outline-none text-slate-800">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-2">No. WhatsApp</label>
+              <input type="text" id="editTelepon" class="w-full px-4 py-3 bubble-input outline-none text-slate-800">
+            </div>
+          </div>
+            <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-2">Nominal Pinjaman (Rp)</label>
+              <input type="text" id="editNominal" oninput="initFormatInputRibuan(this)" required class="w-full px-4 py-3 bubble-input outline-none text-slate-800">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-2">Bunga (%)</label>
+              <input type="number" id="editBunga" required min="0" step="0.1" class="w-full px-4 py-3 bubble-input outline-none text-slate-800">
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-2">Catatan Tambahan</label>
+            <textarea id="editCatatan" rows="2" class="w-full px-4 py-3 bubble-input outline-none text-slate-800 resize-none"></textarea>
+          </div>
+        </div>
+        <div class="mt-8 flex justify-end gap-3">
+          <button type="button" onclick="initModalClose('modalEdit')" class="bubble-btn px-6 py-2.5 text-slate-600 bg-slate-100 hover:bg-slate-200 font-semibold transition-colors">Batal</button>
+          <button type="submit" id="btnSubmitEdit" class="bubble-btn px-6 py-2.5 text-white bg-amber-500 hover:bg-amber-600 font-semibold shadow-lg shadow-amber-500/30 transition-all">Simpan Perubahan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+<!-- Custom Modal Alert -->
+  <div id="modalAlert" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden flex items-center justify-center z-[60] p-4 transition-opacity">
+    <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-sm p-8 text-center transform transition-all scale-100">
+      <div id="alertIcon" class="mx-auto w-16 h-16 mb-5 rounded-full flex items-center justify-center text-3xl">
+        <!-- Icon injected via JS -->
+      </div>
+      <h3 class="text-xl font-bold text-slate-800 mb-2" id="alertTitle">Pemberitahuan</h3>
+      <p id="alertMessage" class="text-slate-600 mb-8 font-medium"></p>
+      <button onclick="initCloseAlert()" class="bubble-btn w-full px-6 py-3.5 text-white bg-blue-600 hover:bg-blue-700 font-semibold shadow-lg shadow-blue-500/30 transition-all">Mengerti</button>
+    </div>
+  </div>
+
+<div id="modalRiwayat" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden flex items-center justify-center z-[55] p-4 transition-opacity">
+    <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-4xl p-6 md:p-8 transform transition-all flex flex-col max-h-[90vh]">
+      <div class="flex justify-between items-center mb-6 shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-600"><i class="ph-bold ph-clock-counter-clockwise"></i></div>
+          <div>
+            <h3 class="text-xl font-bold text-slate-800">Riwayat Pembayaran</h3>
+            <p class="text-sm font-medium text-slate-500">Log seluruh cicilan yang masuk</p>
+          </div>
+        </div>
+        <button onclick="initModalClose('modalRiwayat')" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"><i class="ph-bold ph-x text-lg"></i></button>
+      </div>
+      
+      <div class="mb-6 flex gap-3 shrink-0">
+        <div class="relative w-full md:w-64" id="wrapperFilterRiwayat">
+          
+          <select id="filterBulanRiwayat" class="hidden">
+            <option value="all">Semua Waktu (All-Time)</option>
+          </select>
+
+          <button type="button" onclick="initToggleRiwayatDropdown(event)" id="btnFilterRiwayat" class="w-full pl-11 pr-4 py-2.5 bubble-input outline-none text-sm text-slate-700 font-semibold cursor-pointer transition-all flex items-center justify-between text-left">
+            <i class="ph-bold ph-calendar absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
+            <span id="labelFilterRiwayat" class="truncate pr-2">Semua Waktu (All-Time)</span>
+            <i class="ph-bold ph-caret-down text-slate-400 transition-transform duration-200 shrink-0" id="iconCaretRiwayat"></i>
+          </button>
+
+          <ul id="listFilterRiwayat" class="absolute z-50 w-full mt-2 bg-white rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border border-slate-100 overflow-hidden hidden transform opacity-0 scale-95 transition-all duration-200 origin-top max-h-60 overflow-y-auto custom-scrollbar">
+            </ul>
+
+        </div>
+        
+        <div class="px-4 py-2.5 bg-emerald-50 rounded-xl border border-emerald-100 flex items-center gap-2 shrink-0">
+          <span class="text-sm font-semibold text-emerald-700 hidden sm:inline">Total Periode:</span>
+          <span class="text-sm font-bold text-emerald-800" id="totalNominalRiwayat">Rp0</span>
+        </div>
+      </div>
+
+      <div class="overflow-y-auto w-full pr-2 flex-grow custom-scrollbar">
+        <table class="w-full text-left text-sm whitespace-nowrap">
+          <thead class="bg-slate-50/80 text-slate-500 sticky top-0 backdrop-blur-md z-10">
+            <tr>
+              <th class="px-6 py-4 font-semibold rounded-tl-xl">Tanggal</th>
+              <th class="px-6 py-4 font-semibold">Nama Peminjam</th>
+              <th class="px-6 py-4 font-semibold">Jenis</th>
+              <th class="px-6 py-4 font-semibold">Nominal Masuk</th>
+              <th class="px-6 py-4 font-semibold rounded-tr-xl">Catatan</th>
+            </tr>
+          </thead>
+          <tbody id="tableBodyRiwayat" class="divide-y divide-slate-100">
+            <tr><td colspan="5" class="text-center py-10 text-slate-400 font-medium"><i class="ph-bold ph-spinner-gap animate-spin inline-block mr-2"></i> Memuat data...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Modal Confirm -->
+  <div id="modalConfirm" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden flex items-center justify-center z-[60] p-4 transition-opacity">
+    <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-sm p-8 text-center transform transition-all">
+      <div class="mx-auto w-16 h-16 mb-5 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center text-3xl shadow-inner border border-white">
+        <i class="ph-fill ph-warning"></i>
+      </div>
+      <h3 class="text-xl font-bold text-slate-800 mb-2">Konfirmasi Hapus</h3>
+      <p id="confirmMessage" class="text-slate-600 mb-8 font-medium"></p>
+      <div class="flex gap-3">
+        <button onclick="initCloseConfirm()" class="bubble-btn w-full px-4 py-3.5 text-slate-600 bg-slate-100 hover:bg-slate-200 font-semibold transition-colors">Batal</button>
+        <button id="btnConfirmAction" class="bubble-btn w-full px-4 py-3.5 text-white bg-rose-600 hover:bg-rose-700 font-semibold shadow-lg shadow-rose-500/30 transition-all">Hapus Data</button>
+      </div>
+    </div>
+  </div>
+<script>
+    // State Global
+    window.allPinjamanData = [];
+    window.filteredData = [];
+    let currentPage = 1;
+    const itemsPerPage = 5;
+
+    // --- UI/UX CUSTOM ALERTS ---
+    function initShowAlert(message, type = 'success') {
+      const modal = document.getElementById('modalAlert');
+      const icon = document.getElementById('alertIcon');
+      const title = document.getElementById('alertTitle');
+      
+      if (type === 'success') {
+        icon.className = 'mx-auto w-16 h-16 mb-5 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-3xl shadow-inner border border-white';
+        icon.innerHTML = '<i class="ph-fill ph-check-circle"></i>';
+        title.innerText = 'Berhasil';
+      } else if (type === 'error') {
+        icon.className = 'mx-auto w-16 h-16 mb-5 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center text-3xl shadow-inner border border-white';
+        icon.innerHTML = '<i class="ph-fill ph-x-circle"></i>';
+        title.innerText = 'Terjadi Kesalahan';
+      } else {
+        icon.className = 'mx-auto w-16 h-16 mb-5 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-3xl shadow-inner border border-white';
+        icon.innerHTML = '<i class="ph-fill ph-info"></i>';
+        title.innerText = 'Informasi';
+      }
+      
+      document.getElementById('alertMessage').innerText = message;
+      modal.classList.remove('hidden');
+    }
+// --- UI/UX CUSTOM DROPDOWN FILTER ---
+    
+    function initToggleDropdown(e) {
+      if (e) e.stopPropagation(); // Mencegah event klik bocor ke background
+      const list = document.getElementById('listFilterOptions');
+      const caret = document.getElementById('iconFilterCaret');
+      const btn = document.getElementById('btnFilterTrigger');
+
+      if (list.classList.contains('hidden')) {
+        // Buka Dropdown
+        list.classList.remove('hidden');
+        // Sedikit delay untuk memicu animasi CSS Transition Tailwind
+        setTimeout(() => {
+          list.classList.remove('opacity-0', 'scale-95');
+          list.classList.add('opacity-100', 'scale-100');
+        }, 10);
+        caret.classList.add('rotate-180');
+        btn.classList.add('border-blue-500', 'bg-white'); // Efek fokus
+      } else {
+        initCloseDropdown();
+      }
+    }
+
+    function initCloseDropdown() {
+      const list = document.getElementById('listFilterOptions');
+      const caret = document.getElementById('iconFilterCaret');
+      const btn = document.getElementById('btnFilterTrigger');
+      
+      list.classList.remove('opacity-100', 'scale-100');
+      list.classList.add('opacity-0', 'scale-95');
+      caret.classList.remove('rotate-180');
+      btn.classList.remove('border-blue-500', 'bg-white');
+      
+      // Sembunyikan elemen setelah animasi selesai
+      setTimeout(() => {
+        list.classList.add('hidden');
+      }, 200);
+    }
+
+    function initSelectOption(value, label, iconClass, colorClass) {
+      // 1. Update teks dan ikon pada tombol trigger
+      const labelContainer = document.getElementById('labelFilterSelected');
+      labelContainer.innerHTML = `<i class="ph-fill ${iconClass} ${colorClass}"></i> <span class="${colorClass}">${label}</span>`;
+      
+      // 2. Update value pada tag <select> asli yang tersembunyi
+      const hiddenSelect = document.getElementById('selectFilter');
+      hiddenSelect.value = value;
+      
+      // 3. Tutup dropdown
+      initCloseDropdown();
+      
+      // 4. Jalankan fungsi filter utama Anda!
+      initApplyFilter();
+    }
+
+    // Listener global: Menutup dropdown jika user klik sembarang tempat di luar area filter
+    document.addEventListener('click', function(event) {
+      // Tutup Dropdown Status Dashboard
+      const wrapStatus = document.getElementById('wrapperFilterStatus');
+      const listStatus = document.getElementById('listFilterOptions');
+      if (wrapStatus && !wrapStatus.contains(event.target) && !listStatus.classList.contains('hidden')) {
+        initCloseDropdown();
+      }
+      
+      // Tutup Dropdown Modal Riwayat
+      const wrapRiwayat = document.getElementById('wrapperFilterRiwayat');
+      const listRiwayat = document.getElementById('listFilterRiwayat');
+      if (wrapRiwayat && !wrapRiwayat.contains(event.target) && !listRiwayat.classList.contains('hidden')) {
+        initCloseRiwayatDropdown();
+      }
+    });
+
+    function initCloseAlert() {
+      document.getElementById('modalAlert').classList.add('hidden');
+    }
+
+    // --- UI/UX CUSTOM CONFIRMS ---
+    let confirmCallback = null;
+    
+    function initShowConfirm(message, callback) {
+      document.getElementById('confirmMessage').innerText = message;
+      confirmCallback = callback;
+      document.getElementById('modalConfirm').classList.remove('hidden');
+      
+      document.getElementById('btnConfirmAction').onclick = function() {
+        const executeAction = confirmCallback; 
+        initCloseConfirm(); 
+        if (typeof executeAction === 'function') executeAction(); 
+      };
+    }
+
+    function initCloseConfirm() {
+      document.getElementById('modalConfirm').classList.add('hidden');
+      confirmCallback = null;
+    }
+
+    // --- FORMAT INPUT RIBUAN OTOMATIS (1.000.000) ---
+    function initFormatInputRibuan(element) {
+      let value = element.value.replace(/[^0-9]/g, '');
+      if (value !== '') {
+        value = parseInt(value, 10).toString();
+        element.value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+      } else {
+        element.value = '';
+      }
+    }
+
+    // Utility Formatting (Frontend render)
+    function formatRupiah(number) {
+      return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);
+    }
+
+    function formatDate(dateString) {
+      if (!dateString) return '-';
+      const d = new Date(dateString);
+      return new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }).format(d);
+    }
+
+    // Modal Controls
+    function initModalOpen(modalId) { document.getElementById(modalId).classList.remove('hidden'); }
+    function initModalClose(modalId) { document.getElementById(modalId).classList.add('hidden'); }
+
+    // Fetch and Initialize Data
+    function initLoadData() {
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = `<tr><td colspan="7" class="text-center py-10 text-slate-400 font-medium"><i class="ph ph-spinner-gap animate-spin inline-block mr-2"></i> Memuat data dari server...</td></tr>`;
+
+      google.script.run
+        .withSuccessHandler(initRenderDashboard)
+        .withFailureHandler(function(error) {
+          tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-rose-600 font-medium">Gagal memuat data: ${error.message}</td></tr>`;
+          initShowAlert('Gagal memuat data dari server.', 'error');
+        })
+        .getDataPinjaman();
+    }
+
+   function initRenderDashboard(data) {
+      window.allPinjamanData = data || [];
+      let totalPiutangAktif = 0; let totalBunga = 0; let peminjamAktif = 0; let pinjamanTerlambat = 0;
+      let totalKeuntunganBersih = 0; // VARIABEL BARU
+
+      window.allPinjamanData.forEach(item => {
+        if (item.status !== 'Lunas') {
+          totalPiutangAktif += Number(item.sisaTagihan);
+          totalBunga += Number(item.bungaNominal || 0);
+          peminjamAktif++;
+          
+          // Bandingkan tanggal kalender lokal (bukan timestamp UTC) agar status
+          // tidak berubah sehari lebih cepat karena perbedaan zona waktu.
+          const [tahun, bulan, hari] = String(item.jatuhTempo || '').split('-').map(Number);
+          const tglJatuhTempo = new Date(tahun, bulan - 1, hari);
+          const hariIni = new Date();
+          hariIni.setHours(0, 0, 0, 0);
+          if (tahun && bulan && hari && hariIni > tglJatuhTempo) {
+            pinjamanTerlambat++;
+            item.status = 'Terlambat';
+          } else if (item.status === 'Terlambat') {
+            item.status = 'Belum Lunas';
+          }
+        } else {
+          // LOGIKA BARU: Jika status lunas, bunganya dihitung sebagai Keuntungan Bersih
+          totalKeuntunganBersih += Number(item.bungaNominal || 0);
+        }
+      });
+
+      document.getElementById('dashPiutangAktif').innerText = formatRupiah(totalPiutangAktif);
+      document.getElementById('dashBunga').innerText = formatRupiah(totalBunga);
+      document.getElementById('dashPeminjam').innerText = peminjamAktif;
+      document.getElementById('dashTerlambat').innerText = pinjamanTerlambat;
+      document.getElementById('dashKeuntungan').innerText = formatRupiah(totalKeuntunganBersih); // RENDER BARU
+
+      initApplyFilter();
+    }
+
+    function initApplyFilter() {
+      const searchKeyword = document.getElementById('inputSearch').value.toLowerCase();
+      const statusFilter = document.getElementById('selectFilter').value;
+
+      window.filteredData = window.allPinjamanData.filter(item => {
+        const matchesSearch = item.nama.toLowerCase().includes(searchKeyword);
+        const matchesStatus = statusFilter === 'all' || item.status === statusFilter;
+        return matchesSearch && matchesStatus;
+      });
+
+      currentPage = 1;
+      initRenderTable();
+    }
+
+    function initRenderTable() {
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = '';
+
+      if (window.filteredData.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-12 text-slate-400 font-medium">
+          <i class="ph ph-folder-open text-4xl block mb-2 opacity-50"></i> Data tidak ditemukan.
+        </td></tr>`;
+        initRenderPaginationControls();
+        return;
+      }
+
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      const paginatedData = window.filteredData.slice(startIndex, endIndex);
+
+      paginatedData.forEach(item => {
+        let badgeClass = 'status-belum';
+        if (item.status === 'Lunas') badgeClass = 'status-lunas';
+        if (item.status === 'Terlambat') badgeClass = 'status-terlambat';
+        if (item.status === 'Sudah Bayar Bunga') badgeClass = 'status-bunga';
+
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50/50 transition-colors group cursor-default';
+        
+        // LOGIKA BARU: Jika belum lunas tampilkan tombol Cicil & Lunas, jika sudah lunas sembunyikan
+        const actionButtons = item.status !== 'Lunas' 
+          ? `
+              <button onclick="initPelunasanPenuh('${item.id}')" class="bubble-btn bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700 font-bold text-sm px-3 py-1.5 transition-colors flex items-center gap-1" title="Bayar Lunas Semua"><i class="ph-fill ph-check-circle text-base"></i> Lunas</button>
+              <button onclick="initModalCicil('${item.id}')" class="bubble-btn bg-emerald-50 text-emerald-600 hover:bg-emerald-100 hover:text-emerald-700 font-bold text-sm px-3 py-1.5 transition-colors flex items-center gap-1"><i class="ph-fill ph-hand-coins text-base"></i> Cicil</button>
+            ` 
+          : `
+              <span class="text-emerald-500 font-bold text-sm px-2 flex items-center gap-1 bg-emerald-50 rounded-full py-1"><i class="ph-fill ph-check-square-offset"></i> Selesai</span>
+            `;
+
+        tr.innerHTML = `
+          <td class="px-8 py-5">
+            <p class="font-bold text-slate-800">${item.nama}</p>
+            <p class="text-xs text-slate-400 font-medium mt-0.5">${item.telepon || '-'}</p>
+          </td>
+          <td class="px-6 py-5 text-slate-600 font-medium">${formatDate(item.tanggalPinjam)}</td>
+          <td class="px-6 py-5 text-slate-600 font-medium">${formatDate(item.jatuhTempo)}</td>
+          <td class="px-6 py-5 text-slate-800 font-semibold">${formatRupiah(item.nominalPinjaman)}</td>
+          <td class="px-6 py-5">
+            <span class="font-bold ${item.sisaTagihan > 0 ? 'text-blue-600' : 'text-emerald-600'}">
+              ${formatRupiah(item.sisaTagihan)}
+            </span>
+          </td>
+          <td class="px-6 py-5">
+            <span class="status-badge ${badgeClass}">${item.status}</span>
+          </td>
+          <td class="px-8 py-5">
+            <div class="flex justify-center gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+              ${actionButtons}
+              <button onclick="initEditOpen('${item.id}')" class="bubble-btn bg-amber-50 text-amber-600 hover:bg-amber-100 hover:text-amber-700 font-bold px-2.5 py-1.5 transition-colors" title="Ubah Data"><i class="ph-fill ph-pencil-simple text-base"></i></button>
+              <button onclick="initDeleteConfirm('${item.id}')" class="bubble-btn bg-rose-50 text-rose-600 hover:bg-rose-100 hover:text-rose-700 font-bold px-2.5 py-1.5 transition-colors" title="Hapus"><i class="ph-fill ph-trash text-base"></i></button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      initRenderPaginationControls();
+    }
+
+    function initRenderPaginationControls() {
+      const totalItems = window.filteredData.length;
+      const totalPages = Math.ceil(totalItems / itemsPerPage);
+      const startItem = totalItems === 0 ? 0 : ((currentPage - 1) * itemsPerPage) + 1;
+      const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+
+      document.getElementById('paginationInfo').innerText = `Menampilkan ${startItem}-${endItem} dari ${totalItems} data`;
+      const paginationContainer = document.getElementById('paginationControls');
+      paginationContainer.innerHTML = '';
+
+      if (totalPages <= 1) return;
+
+      const btnPrev = document.createElement('button');
+      btnPrev.innerHTML = '<i class="ph ph-caret-left"></i>';
+      btnPrev.className = `w-8 h-8 flex items-center justify-center rounded-full text-sm font-semibold transition-colors ${currentPage === 1 ? 'bg-slate-50 text-slate-300 cursor-not-allowed' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'}`;
+      btnPrev.onclick = () => { if (currentPage > 1) initChangePage(currentPage - 1); };
+      paginationContainer.appendChild(btnPrev);
+
+      for (let i = 1; i <= totalPages; i++) {
+        const btnNum = document.createElement('button');
+        btnNum.innerText = i;
+        btnNum.className = i === currentPage 
+          ? 'w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold bg-blue-600 text-white shadow-md shadow-blue-500/30' 
+          : 'w-8 h-8 flex items-center justify-center rounded-full text-sm font-semibold bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors';
+        if (i !== currentPage) btnNum.onclick = () => initChangePage(i);
+        paginationContainer.appendChild(btnNum);
+      }
+
+      const btnNext = document.createElement('button');
+      btnNext.innerHTML = '<i class="ph ph-caret-right"></i>';
+      btnNext.className = `w-8 h-8 flex items-center justify-center rounded-full text-sm font-semibold transition-colors ${currentPage === totalPages ? 'bg-slate-50 text-slate-300 cursor-not-allowed' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'}`;
+      btnNext.onclick = () => { if (currentPage < totalPages) initChangePage(currentPage + 1); };
+      paginationContainer.appendChild(btnNext);
+    }
+
+    function initChangePage(pageNumber) {
+      currentPage = pageNumber;
+      initRenderTable();
+    }
+
+    // --- FORM SUBMISSIONS ---
+    function initSubmitPinjaman(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnSubmit');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<i class="ph ph-spinner-gap animate-spin"></i> Menyimpan...';
+      btn.disabled = true;
+
+      const formData = {
+        nama: document.getElementById('inputNama').value,
+        telepon: document.getElementById('inputTelepon').value,
+        tanggalPinjam: document.getElementById('inputTanggal').value,
+        nominalPinjaman: document.getElementById('inputNominal').value.replace(/\./g, ''), 
+        bungaPersen: document.getElementById('inputBunga').value, 
+        catatan: document.getElementById('inputCatatan').value
+      };
+
+      google.script.run
+        .withSuccessHandler(function(response) {
+          initShowAlert(response.message, 'success');
+          document.getElementById('formTambah').reset();
+          initModalClose('modalTambah');
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+          initLoadData();
+        })
+        .withFailureHandler(function(error) {
+          initShowAlert('Terjadi kesalahan: ' + error.message, 'error');
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+        })
+        .tambahPinjaman(formData);
+    }
+
+    function initModalCicil(id) {
+      const targetId = String(id).trim();
+      const item = window.allPinjamanData.find(p => String(p.id).trim() === targetId);
+      if (!item) { initShowAlert('Data tidak ditemukan.', 'error'); return; }
+
+      document.getElementById('inputLoanId').value = targetId;
+      document.getElementById('infoPeminjam').innerText = item.nama;
+      document.getElementById('infoSisaTagihan').innerText = formatRupiah(item.sisaTagihan);
+      document.getElementById('inputTanggalBayar').value = new Date().toISOString().split('T')[0];
+      // Custom dropdown tidak memiliki elemen <option>; sinkronkan pilihan melalui UI custom.
+      document.getElementById('inputNominalBayar').value = '';
+      document.getElementById('inputCatatanBayar').value = '';
+      const jenisAwal = item.bungaSudahDibayar ? 'pelunasan' : 'bunga';
+      pilihPembayaran(jenisAwal, jenisAwal === 'bunga' ? 'Bayar bunga saja' : 'Pelunasan penuh');
+      initUpdateNominalPembayaran();
+      initModalOpen('modalCicil');
+    }
+
+    function initUpdateNominalPembayaran() {
+      const id = document.getElementById('inputLoanId').value;
+      const item = (window.allPinjamanData || []).find(p => String(p.id).trim() === String(id).trim());
+      if (!item) return;
+      const jenis = document.getElementById('inputJenisPembayaran').value;
+      const input = document.getElementById('inputNominalBayar');
+      const hint = document.getElementById('hintJenisPembayaran');
+      const catatan = document.getElementById('inputCatatanBayar');
+      if (jenis === 'bunga') {
+        input.value = formatAngkaInput(item.bungaNominal);
+        hint.innerText = 'Bayar bunga untuk periode jatuh tempo saat ini. Setelah berhasil, jatuh tempo otomatis berpindah antara tanggal 22 dan 7. Pokok pinjaman tidak berkurang.';
+        if (!catatan.value || catatan.value === 'Pelunasan Penuh') catatan.value = 'Pembayaran bunga';
+      } else {
+        input.value = formatAngkaInput(item.sisaTagihan);
+        hint.innerText = 'Nominal harus sama dengan sisa tagihan agar pinjaman berstatus lunas.';
+        if (!catatan.value || catatan.value === 'Pembayaran bunga') catatan.value = 'Pelunasan penuh';
+      }
+    }
+
+    function formatAngkaInput(value) {
+      const number = Math.max(0, Math.round(Number(value) || 0));
+      return String(number).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    }
+
+    function initPelunasanPenuh(id) {
+      const targetId = String(id).trim();
+      const item = window.allPinjamanData.find(p => String(p.id).trim() === targetId);
+      if (!item) { initShowAlert('Data tidak ditemukan.', 'error'); return; }
+      document.getElementById('inputLoanId').value = targetId;
+      document.getElementById('infoPeminjam').innerText = item.nama;
+      document.getElementById('infoSisaTagihan').innerText = formatRupiah(item.sisaTagihan);
+      document.getElementById('inputTanggalBayar').value = new Date().toISOString().split('T')[0];
+      // Pilih opsi pelunasan pada custom dropdown (bukan <select>/<option> bawaan).
+      document.getElementById('inputNominalBayar').value = formatAngkaInput(item.sisaTagihan);
+      document.getElementById('inputCatatanBayar').value = 'Pelunasan penuh';
+      pilihPembayaran('pelunasan', 'Pelunasan penuh');
+      initUpdateNominalPembayaran();
+      initModalOpen('modalCicil');
+    }
+
+    function initSubmitCicilan(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnSubmitCicil');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<i class="ph ph-spinner-gap animate-spin"></i> Memproses...';
+      btn.disabled = true;
+
+      const formData = {
+        loanId: document.getElementById('inputLoanId').value,
+        tanggalPembayaran: document.getElementById('inputTanggalBayar').value,
+        nominalPembayaran: document.getElementById('inputNominalBayar').value.replace(/\./g, ''),
+        jenisPembayaran: document.getElementById('inputJenisPembayaran').value,
+        catatan: document.getElementById('inputCatatanBayar').value
+      };
+
+      google.script.run
+        .withSuccessHandler(function(response) {
+          initShowAlert(response.message, 'success');
+          document.getElementById('formCicil').reset();
+          initModalClose('modalCicil');
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+          initLoadData();
+        })
+        .withFailureHandler(function(error) {
+          initShowAlert('Terjadi kesalahan: ' + error.message, 'error');
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+        })
+        .prosesCicilan(formData);
+    }
+
+    function initEditOpen(id) {
+      const targetId = String(id).trim();
+      const item = window.allPinjamanData.find(p => String(p.id).trim() === targetId); // BUG FIX
+      
+      if (!item) {
+        initShowAlert('Data tidak ditemukan.', 'error');
+        return;
+      }
+
+      document.getElementById('editId').value = targetId;
+      document.getElementById('editNama').value = item.nama;
+      document.getElementById('editTelepon').value = item.telepon || '';
+      document.getElementById('editTanggal').value = item.tanggalPinjam;
+      document.getElementById('editBunga').value = item.bungaPersen || 30;
+
+      const inputEditNominal = document.getElementById('editNominal');
+      inputEditNominal.value = item.nominalPinjaman;
+      initFormatInputRibuan(inputEditNominal); 
+      
+      document.getElementById('editCatatan').value = item.catatan || '';
+      initModalOpen('modalEdit');
+    }
+
+    function initSubmitEdit(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnSubmitEdit');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<i class="ph ph-spinner-gap animate-spin"></i> Menyimpan...';
+      btn.disabled = true;
+
+      const formData = {
+        id: document.getElementById('editId').value,
+        nama: document.getElementById('editNama').value,
+        telepon: document.getElementById('editTelepon').value,
+        tanggalPinjam: document.getElementById('editTanggal').value,
+        nominalPinjaman: document.getElementById('editNominal').value.replace(/\./g, ''),
+        bungaPersen: document.getElementById('editBunga').value,
+        catatan: document.getElementById('editCatatan').value
+      };
+
+      google.script.run
+        .withSuccessHandler(function(response) {
+          initShowAlert(response.message, 'success');
+          initModalClose('modalEdit');
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+          initLoadData();
+        })
+        .withFailureHandler(function(error) {
+          initShowAlert('Terjadi kesalahan: ' + error.message, 'error');
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+        })
+        .editPinjaman(formData);
+    }
+
+    function initDeleteConfirm(id) {
+      const targetId = String(id).trim();
+      const item = window.allPinjamanData.find(p => String(p.id).trim() === targetId);
+      
+      if (!item) {
+        initShowAlert('Sistem gagal menemukan ID data pada memori lokal.', 'error');
+        return;
+      }
+      
+      initShowConfirm(
+        `Apakah Anda yakin ingin menghapus data atas nama "${item.nama}" beserta seluruh riwayat cicilannya?`,
+        function() {
+          initShowAlert('Sedang memproses penghapusan...', 'info');
+          
+          google.script.run
+            .withSuccessHandler(function(response) {
+              initShowAlert(response.message, 'success');
+              initLoadData(); 
+            })
+            .withFailureHandler(function(error) {
+              initShowAlert('Gagal Hapus: ' + error.message, 'error');
+            })
+            .deletePinjaman(targetId);
+        }
+      );
+    }
+// --- FITUR LOGOUT ---
+   function initLogout() {
+      google.script.run.withSuccessHandler(function() {
+        window.top.location.replace(BASE_APP_URL);
+      }).logoutSession(AUTH_TOKEN);
+    }
+
+    // --- LOGIKA RIWAYAT PEMBAYARAN ---
+    window.rawRiwayatData = [];
+
+   function initOpenRiwayat() {
+      initModalOpen('modalRiwayat');
+      document.getElementById('tableBodyRiwayat').innerHTML = '<tr><td colspan="5" class="text-center py-10 text-slate-400 font-medium"><i class="ph-bold ph-spinner-gap animate-spin inline-block mr-2"></i> Mengambil data transaksi...</td></tr>';
+      
+      google.script.run
+        .withSuccessHandler(function(data) {
+          try {
+            window.rawRiwayatData = data || [];
+            initGenerateOpsiBulan();
+            initFilterRiwayat(); 
+          } catch (e) {
+            // Jika gagal merender tabel/filter, munculkan pesan errornya ke layar
+            document.getElementById('tableBodyRiwayat').innerHTML = `<tr><td colspan="5" class="text-center py-6 text-rose-600 font-medium">Error Tampilan: ${e.message}</td></tr>`;
+          }
+        })
+        .withFailureHandler(function(error) {
+          // Jika backend gagal merespons, munculkan pesan errornya
+          document.getElementById('tableBodyRiwayat').innerHTML = `<tr><td colspan="5" class="text-center py-6 text-rose-600 font-medium">Error Server: ${error.message}</td></tr>`;
+        })
+        .getRiwayatPembayaran(); // Memanggil fungsi di Kode.gs
+    }
+
+    function initGenerateOpsiBulan() {
+      const select = document.getElementById('filterBulanRiwayat');
+      const ulList = document.getElementById('listFilterRiwayat');
+      
+      // 1. Reset opsi Select asli
+      select.innerHTML = '<option value="all">Semua Waktu (All-Time)</option>';
+      
+      // 2. Reset list UL modern dengan opsi default "All-Time"
+      ulList.innerHTML = `
+        <li onclick="initSelectRiwayatOption('all', 'Semua Waktu (All-Time)')" class="px-4 py-3 hover:bg-slate-50 cursor-pointer text-sm font-semibold text-slate-600 flex items-center gap-3 transition-colors border-b border-slate-50">
+          <div class="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-500"><i class="ph-bold ph-calendar-blank"></i></div> Semua Waktu (All-Time)
+        </li>
+      `;
+      
+      const bulanUnik = new Set();
+      window.rawRiwayatData.forEach(item => {
+        const tgl = new Date(item.tanggalPembayaran);
+        const key = `${tgl.getFullYear()}-${String(tgl.getMonth() + 1).padStart(2, '0')}`;
+        bulanUnik.add(key);
+      });
+
+      const arrBulan = Array.from(bulanUnik).sort().reverse();
+      
+      arrBulan.forEach(key => {
+        const [year, month] = key.split('-');
+        const namaBulan = new Date(year, month - 1).toLocaleString('id-ID', { month: 'long', year: 'numeric' });
+        
+        // Tambahkan ke Select asli
+        const option = document.createElement('option');
+        option.value = key;
+        option.innerText = namaBulan;
+        select.appendChild(option);
+
+        // Tambahkan elemen UI Modern ke UL
+        const li = document.createElement('li');
+        li.className = "px-4 py-3 hover:bg-blue-50 cursor-pointer text-sm font-semibold text-slate-700 hover:text-blue-700 flex items-center gap-3 transition-colors border-b border-slate-50";
+        li.onclick = () => initSelectRiwayatOption(key, namaBulan);
+        li.innerHTML = `<div class="w-7 h-7 rounded-full bg-blue-50 flex items-center justify-center text-blue-500"><i class="ph-fill ph-calendar-check"></i></div> ${namaBulan}`;
+        ulList.appendChild(li);
+      });
+    }
+
+    // --- KONTROL DROPDOWN RIWAYAT ---
+    function initToggleRiwayatDropdown(e) {
+      if (e) e.stopPropagation();
+      const list = document.getElementById('listFilterRiwayat');
+      const caret = document.getElementById('iconCaretRiwayat');
+      const btn = document.getElementById('btnFilterRiwayat');
+
+      if (list.classList.contains('hidden')) {
+        list.classList.remove('hidden');
+        setTimeout(() => {
+          list.classList.remove('opacity-0', 'scale-95');
+          list.classList.add('opacity-100', 'scale-100');
+        }, 10);
+        caret.classList.add('rotate-180');
+        btn.classList.add('border-blue-500', 'bg-white');
+      } else {
+        initCloseRiwayatDropdown();
+      }
+    }
+
+    function initCloseRiwayatDropdown() {
+      const list = document.getElementById('listFilterRiwayat');
+      const caret = document.getElementById('iconCaretRiwayat');
+      const btn = document.getElementById('btnFilterRiwayat');
+      
+      if (list && !list.classList.contains('hidden')) {
+        list.classList.remove('opacity-100', 'scale-100');
+        list.classList.add('opacity-0', 'scale-95');
+        if(caret) caret.classList.remove('rotate-180');
+        if(btn) btn.classList.remove('border-blue-500', 'bg-white');
+        
+        setTimeout(() => {
+          list.classList.add('hidden');
+        }, 200);
+      }
+    }
+
+    function initSelectRiwayatOption(value, label) {
+      // Update label di tombol
+      document.getElementById('labelFilterRiwayat').innerText = label;
+      // Update value di select tersembunyi
+      document.getElementById('filterBulanRiwayat').value = value;
+      // Tutup dropdown & jalankan filter data
+      initCloseRiwayatDropdown();
+      initFilterRiwayat();
+    }
+
+    function initFilterRiwayat() {
+      const filterValue = document.getElementById('filterBulanRiwayat').value;
+      const tbody = document.getElementById('tableBodyRiwayat');
+      tbody.innerHTML = '';
+      
+      let filteredData = window.rawRiwayatData;
+      let totalNominal = 0;
+
+      if (filterValue !== 'all') {
+        filteredData = window.rawRiwayatData.filter(item => {
+          const tgl = new Date(item.tanggalPembayaran);
+          const key = `${tgl.getFullYear()}-${String(tgl.getMonth() + 1).padStart(2, '0')}`;
+          return key === filterValue;
+        });
+      }
+
+      if (filteredData.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-12 text-slate-400 font-medium"><i class="ph-bold ph-folder-open text-4xl block mb-2 opacity-50"></i> Belum ada transaksi di periode ini.</td></tr>`;
+        document.getElementById('totalNominalRiwayat').innerText = formatRupiah(0);
+        return;
+      }
+
+      filteredData.forEach(item => {
+        totalNominal += Number(item.nominalPembayaran || 0);
+        
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50/50 transition-colors cursor-default';
+        tr.innerHTML = `
+          <td class="px-6 py-4 font-medium text-slate-600">${formatDate(item.tanggalPembayaran)}</td>
+          <td class="px-6 py-4 font-bold text-slate-800">${item.namaPeminjam}</td>
+          <td class="px-6 py-4">${item.jenisPembayaran === 'bunga' ? '<span class="inline-flex rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">Bunga saja</span>' : '<span class="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">Pelunasan/pembayaran</span>'}</td>
+          <td class="px-6 py-4 font-bold text-emerald-600">${formatRupiah(item.nominalPembayaran)}</td>
+          <td class="px-6 py-4 text-slate-500 whitespace-normal min-w-[200px]">${item.catatan || '-'}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById('totalNominalRiwayat').innerText = formatRupiah(totalNominal);
+    }
+    // Eksekusi Awal
+    function initPinjamanKu() {
+      initLoadData();
+    }
+
+    function initNavToTracker() {
+      window.top.location.href = BASE_APP_URL + "?page=tracker&session=" + encodeURIComponent(AUTH_TOKEN);
+    }
+
+    function initNavToDashboard() {
+      window.top.location.href = BASE_APP_URL + "?page=dashboard&session=" + encodeURIComponent(AUTH_TOKEN);
+    }
+
+    function initNavToCalculator() {
+      window.top.location.href = BASE_APP_URL + "?page=kalkulator&session=" + encodeURIComponent(AUTH_TOKEN);
+    }
+
+function togglePaymentDropdown() {
+  document.getElementById('paymentDropdown')
+    .classList.toggle('open');
+}
+
+function pilihPembayaran(jenis, label) {
+  const inputJenis = document.getElementById('inputJenisPembayaran');
+  const selectedPayment = document.getElementById('selectedPayment');
+  const paymentDropdown = document.getElementById('paymentDropdown');
+  if (!inputJenis || !selectedPayment || !paymentDropdown) return;
+
+  inputJenis.value = jenis;
+  selectedPayment.textContent = label;
+
+  document.querySelectorAll('.custom-payment-option')
+    .forEach(option => {
+      option.classList.toggle(
+        'active',
+        option.querySelector('strong').textContent === label
+      );
+    });
+
+  const hint = document.getElementById('hintJenisPembayaran');
+
+  hint.textContent = jenis === 'bunga'
+    ? 'Pembayaran bunga tidak mengurangi sisa tagihan.'
+    : 'Nominal harus sesuai seluruh sisa tagihan untuk pelunasan.';
+
+  paymentDropdown.classList.remove('open');
+
+  if (typeof initUpdateNominalPembayaran === 'function') {
+    initUpdateNominalPembayaran();
+  }
+}
+
+document.addEventListener('click', function(event) {
+  const dropdown = document.getElementById('paymentDropdown');
+
+  if (dropdown && !dropdown.contains(event.target)) {
+    dropdown.classList.remove('open');
+  }
+});
+
+    window.onload = initPinjamanKu;
+  </script>
+</body>
+</html>
