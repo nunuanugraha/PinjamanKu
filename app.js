@@ -3,7 +3,7 @@
  * Tidak ada kredensial login atau Spreadsheet ID sensitif yang diekspos di client.
  */
 
-const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbzdX75QkP-B6C2DNLkv2Xh5v4R-RIhlVDh9ZfpqbjfuJbI1qSgpreMBdbh3k_7YrvDL/exec';
+const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbwpKPcPnd74DMT32jnc4QRxNawo-KqmigkyG-8-GznZx06TxCaPs4-SFEYvaJSBs5E/exec';
 
 const STORAGE_KEYS = {
   AUTH: 'pinjamanku_auth_session',
