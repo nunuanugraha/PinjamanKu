@@ -14,10 +14,33 @@ const STORAGE_KEYS = {
   AUTH: 'pinjamanku_auth_session',
   PINJAMAN: 'pinjamanku_data_pinjaman',
   TRACKER: 'pinjamanku_data_tracker',
-  PEMBAYARAN: 'pinjamanku_data_pembayaran'
+  PEMBAYARAN: 'pinjamanku_data_pembayaran',
+  TRACKER_LOCK: 'pinjamanku_tracker_pin',
+  TRACKER_SESSION: 'pinjamanku_tracker_unlocked'
 };
 
 class AppStorage {
+  static getTrackerPin() {
+    return localStorage.getItem(STORAGE_KEYS.TRACKER_LOCK) || '123456';
+  }
+
+  static setTrackerPin(newPin) {
+    if (newPin && newPin.trim()) {
+      localStorage.setItem(STORAGE_KEYS.TRACKER_LOCK, newPin.trim());
+    }
+  }
+
+  static isTrackerUnlocked() {
+    return sessionStorage.getItem(STORAGE_KEYS.TRACKER_SESSION) === 'true';
+  }
+
+  static setTrackerUnlocked(status = true) {
+    if (status) {
+      sessionStorage.setItem(STORAGE_KEYS.TRACKER_SESSION, 'true');
+    } else {
+      sessionStorage.removeItem(STORAGE_KEYS.TRACKER_SESSION);
+    }
+  }
   static getApiUrl() {
     return localStorage.getItem('pinjamanku_custom_api_url') || GAS_API_URL;
   }
