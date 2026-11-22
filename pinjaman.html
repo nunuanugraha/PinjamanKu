@@ -882,11 +882,28 @@
       btn.disabled = true;
       btn.textContent = 'Memproses...';
 
+      const jenisPembayaran = document.querySelector('input[name="bayarJenis"]:checked').value;
+      const nominalPembayaran = Utils.parseAngka(document.getElementById('bayarNominal').value);
+
+      if (!nominalPembayaran) {
+        showAlert('Nominal pembayaran wajib diisi.', 'error');
+        btn.disabled = false;
+        btn.textContent = 'Konfirmasi Bayar';
+        return;
+      }
+
+      if (jenisPembayaran === 'pelunasan' && nominalPembayaran !== Number(currentLoanToPay.sisaTagihan)) {
+        showAlert(`Nominal pelunasan harus sesuai sisa tagihan: ${Utils.formatRupiah(currentLoanToPay.sisaTagihan)}.`, 'error');
+        btn.disabled = false;
+        btn.textContent = 'Konfirmasi Bayar';
+        return;
+      }
+
       const payload = {
         loanId: document.getElementById('bayarLoanId').value,
-        jenisPembayaran: document.querySelector('input[name="bayarJenis"]:checked').value,
+        jenisPembayaran,
         tanggalPembayaran: document.getElementById('bayarTanggal').value,
-        nominalPembayaran: Utils.parseAngka(document.getElementById('bayarNominal').value),
+        nominalPembayaran,
         catatan: document.getElementById('bayarCatatan').value
       };
 
@@ -894,7 +911,13 @@
         const res = await PinjamanAPI.request('prosesCicilan', 'POST', payload);
         showAlert(res.message || 'Pembayaran berhasil dicatat!', 'success');
         closeModalBayar();
-        loadAllData();
+        for (let i = 0; i < 3; i++) {
+          await new Promise(resolve => setTimeout(resolve, i === 0 ? 800 : 1200));
+          await loadAllData();
+          if (jenisPembayaran !== 'pelunasan') break;
+          const updatedLoan = allPinjaman.find(x => String(x.id).trim() === String(payload.loanId).trim());
+          if (updatedLoan && String(updatedLoan.status).toLowerCase() === 'lunas') break;
+        }
       } catch (err) {
         showAlert('Gagal mencatat pembayaran: ' + err.message, 'error');
       } finally {

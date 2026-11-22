@@ -217,16 +217,34 @@ class PinjamanAPI {
         }
       } else {
         // Operasi POST
-        await fetch(GAS_API_URL, {
+        const res = await fetch(this.getApiUrl(), {
           method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          redirect: 'follow',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ action: action, data: data })
         });
-        return { success: true };
+
+        if (!res.ok) {
+          throw new Error(`Permintaan ke server gagal (${res.status})`);
+        }
+
+        const text = await res.text();
+        if (!text) return { success: true };
+
+        try {
+          const result = JSON.parse(text);
+          if (result.success === false) {
+            throw new Error(result.message || 'Server menolak permintaan');
+          }
+          return result;
+        } catch (err) {
+          if (err instanceof SyntaxError) return { success: true };
+          throw err;
+        }
       }
     } catch (err) {
       console.warn(`[PinjamanAPI] Gagal fetch (${action}):`, err);
+      if (method !== 'GET') throw err;
       return AppStorage.getLocalData(STORAGE_KEYS.PINJAMAN, []);
     }
   }
