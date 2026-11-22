@@ -39,11 +39,13 @@ class AppStorage {
   }
 
   static setApiUrl(url) {
+    const previousUrl = this.getApiUrl();
     if (url && url.trim()) {
       localStorage.setItem('pinjamanku_custom_api_url', url.trim());
     } else {
       localStorage.removeItem('pinjamanku_custom_api_url');
     }
+    if (this.getApiUrl() !== previousUrl) this.clearAuth();
   }
 
   static getAuth() {
@@ -164,7 +166,11 @@ class PinjamanAPI {
 
         const rows = await this.requestJsonp(action, { token: auth.token });
         if (!Array.isArray(rows)) {
-          throw new Error(rows.message || 'Server mengembalikan data yang tidak valid.');
+          if (rows && rows.error === 'UNAUTHORIZED') {
+            AppStorage.clearAuth();
+            window.location.replace('login.html');
+          }
+          throw new Error((rows && (rows.error || rows.message)) || 'Server mengembalikan data yang tidak valid.');
         }
 
         if (action === 'getDataPinjaman') {

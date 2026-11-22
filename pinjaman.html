@@ -444,10 +444,11 @@
         updateTabCounts();
         renderTable();
         renderRiwayat();
-        return true;
+        return { success: true };
       } catch (e) {
-        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-rose-500">Gagal memuat data dari database.</td></tr>`;
-        return false;
+        console.error('[Pinjaman] Gagal memuat data:', e);
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-rose-500">Gagal memuat data: ${Utils.escapeHtml(e.message || 'Kesalahan server')}</td></tr>`;
+        return { success: false, error: e.message || 'Kesalahan server' };
       }
     }
 
@@ -920,10 +921,14 @@
         await PinjamanAPI.request('prosesCicilan', 'POST', payload);
         closeModalBayar();
         let paymentConfirmed = false;
+        let verificationError = '';
         for (let i = 0; i < 3; i++) {
           await new Promise(resolve => setTimeout(resolve, i === 0 ? 800 : 1200));
-          const refreshed = await loadAllData(true);
-          if (!refreshed) continue;
+          const refreshResult = await loadAllData(true);
+          if (!refreshResult.success) {
+            verificationError = refreshResult.error;
+            continue;
+          }
 
           if (jenisPembayaran === 'pelunasan') {
             const updatedLoan = allPinjaman.find(x => String(x.id).trim() === String(payload.loanId).trim());
@@ -937,7 +942,8 @@
         if (paymentConfirmed) {
           showAlert('Pembayaran berhasil dicatat dan status sudah diperbarui.', 'success');
         } else {
-          showAlert('Permintaan pembayaran sudah dikirim, tetapi perubahan belum terverifikasi dari database. Periksa spreadsheet sebelum mencoba lagi agar tidak tercatat dua kali.', 'error');
+          const detail = verificationError ? ` Detail server: ${verificationError}` : '';
+          showAlert(`Permintaan pembayaran sudah dikirim, tetapi perubahan belum terverifikasi dari database. Periksa spreadsheet sebelum mencoba lagi agar tidak tercatat dua kali.${detail}`, 'error');
         }
       } catch (err) {
         showAlert('Gagal mencatat pembayaran: ' + err.message, 'error');
