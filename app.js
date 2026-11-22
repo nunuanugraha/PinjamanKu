@@ -134,7 +134,7 @@ class PinjamanAPI {
       };
       script.onerror = () => {
         cleanup();
-        reject(new Error('Tidak dapat terhubung ke server.'));
+        reject(new Error('URL Apps Script gagal dimuat atau akses ditolak. Pastikan URL /exec benar dan deployment mengizinkan akses Anyone.'));
       };
       script.src = url.toString();
       document.head.appendChild(script);
