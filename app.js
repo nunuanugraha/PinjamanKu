@@ -3,8 +3,6 @@
  */
 
 const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbwpKPcPnd74DMT32jnc4QRxNawo-KqmigkyG-8-GznZx06TxCaPs4-SFEYvaJSBs5E/exec';
-const BACKUP_SPREADSHEET_ID = '1LUs1Ro7nUDNvD8rA-QNfsznXH4BMnHYdbfv6cv6CYOA';
-
 const STORAGE_KEYS = {
   AUTH: 'pinjamanku_auth_session',
   PINJAMAN: 'pinjamanku_data_pinjaman',
@@ -102,18 +100,24 @@ class PinjamanAPI {
 
   // Verifikasi login aman (Mendukung p@ssword123! dan varian p\@ssword123!)
   static async login(username, password) {
+    return this.requestJsonp('login', {
+      u: String(username || '').trim(),
+      p: String(password || '')
+    });
+  }
+
+  static async requestJsonp(action, params = {}) {
     const url = new URL(AppStorage.getApiUrl());
-    const callbackName = `pinjamanLogin${Date.now()}${Math.random().toString(36).slice(2)}`;
-    url.searchParams.set('action', 'login');
-    url.searchParams.set('u', String(username || '').trim());
-    url.searchParams.set('p', String(password || ''));
+    const callbackName = `pinjamanApi${Date.now()}${Math.random().toString(36).slice(2)}`;
+    url.searchParams.set('action', action);
     url.searchParams.set('callback', callbackName);
+    Object.keys(params).forEach(key => url.searchParams.set(key, params[key]));
 
     return new Promise((resolve, reject) => {
       const script = document.createElement('script');
       const timeout = setTimeout(() => {
         cleanup();
-        reject(new Error('Waktu koneksi ke server login habis.'));
+        reject(new Error('Waktu koneksi ke server habis.'));
       }, 15000);
 
       const cleanup = () => {
@@ -128,32 +132,10 @@ class PinjamanAPI {
       };
       script.onerror = () => {
         cleanup();
-        reject(new Error('Tidak dapat terhubung ke server login.'));
+        reject(new Error('Tidak dapat terhubung ke server.'));
       };
       script.src = url.toString();
       document.head.appendChild(script);
-    });
-  }
-
-  // Mengambil data sheet
-  static async fetchSheetDirect(sheetName) {
-    const url = `https://docs.google.com/spreadsheets/d/${BACKUP_SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}&_t=${Date.now()}`;
-    const res = await fetch(url);
-    const text = await res.text();
-    const jsonStr = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
-    const data = JSON.parse(jsonStr);
-    if (!data.table || !data.table.rows) return [];
-    
-    const headers = data.table.cols.map(c => (c ? c.label || c.id : ''));
-    return data.table.rows.map(row => {
-      const obj = {};
-      row.c.forEach((cell, idx) => {
-        const header = headers[idx];
-        if (header) {
-          obj[header] = cell ? (cell.v !== null ? cell.v : cell.f) : '';
-        }
-      });
-      return obj;
     });
   }
 
@@ -172,11 +154,20 @@ class PinjamanAPI {
     return String(val).slice(0, 10);
   }
 
-  static async request(action, method = 'GET', data = null) {
+  static async request(action, method = 'GET', data = null, options = {}) {
     try {
       if (method === 'GET') {
+        const auth = AppStorage.getAuth();
+        if (!auth || !auth.token) {
+          throw new Error('Sesi login tidak valid. Silakan keluar lalu masuk kembali.');
+        }
+
+        const rows = await this.requestJsonp(action, { token: auth.token });
+        if (!Array.isArray(rows)) {
+          throw new Error(rows.message || 'Server mengembalikan data yang tidak valid.');
+        }
+
         if (action === 'getDataPinjaman') {
-          const rows = await this.fetchSheetDirect('Pinjaman');
           const result = rows.map(r => ({
             id: r.id || r.ID || '',
             nama: r.nama || r.Nama || 'Tanpa Nama',
@@ -191,39 +182,37 @@ class PinjamanAPI {
             sisaTagihan: Number(r.sisaTagihan || r.SisaTagihan || 0),
             status: r.status || r.Status || 'Belum Lunas',
             catatan: r.catatan || r.Catatan || '',
-            bungaSudahDibayar: String(r.status || '').toLowerCase().includes('bunga')
-          })).reverse();
+            bungaSudahDibayar: Boolean(r.bungaSudahDibayar)
+          }));
 
           AppStorage.setLocalData(STORAGE_KEYS.PINJAMAN, result);
           return result;
         }
 
         if (action === 'getTrackerData') {
-          const rows = await this.fetchSheetDirect('Tracker');
           const result = rows.map(r => ({
-            id: r.id || '',
-            tanggal: this.normalizeDate(r.tanggal),
-            tipe: r.tipe || 'Pemasukan',
-            nominal: Number(r.nominal || 0),
-            kategori: r.kategori || 'Umum',
-            catatan: r.catatan || ''
-          })).reverse();
+            id: r.id || r.ID || '',
+            tanggal: this.normalizeDate(r.tanggal || r.Tanggal),
+            tipe: r.tipe || r.Tipe || 'Pemasukan',
+            nominal: Number(r.nominal || r.Nominal || 0),
+            kategori: r.kategori || r.Kategori || 'Umum',
+            catatan: r.catatan || r.Catatan || ''
+          }));
 
           AppStorage.setLocalData(STORAGE_KEYS.TRACKER, result);
           return result;
         }
 
         if (action === 'getRiwayatPembayaran') {
-          const rows = await this.fetchSheetDirect('Pembayaran');
           const result = rows.map(r => ({
-            id: r.id || '',
-            loanId: r.loanId || '',
+            id: r.id || r.ID || '',
+            loanId: r.loanId || r.LoanId || '',
             namaPeminjam: r.namaPeminjam || r.loanId || 'Pembayaran',
-            tanggalPembayaran: this.normalizeDate(r.tanggalPembayaran),
-            nominalPembayaran: Number(r.nominalPembayaran || 0),
-            jenisPembayaran: r.jenisPembayaran || 'pelunasan',
-            catatan: r.catatan || ''
-          })).reverse();
+            tanggalPembayaran: this.normalizeDate(r.tanggalPembayaran || r.TanggalPembayaran),
+            nominalPembayaran: Number(r.nominalPembayaran || r.NominalPembayaran || 0),
+            jenisPembayaran: r.jenisPembayaran || r.JenisPembayaran || 'pelunasan',
+            catatan: r.catatan || r.Catatan || ''
+          }));
 
           AppStorage.setLocalData(STORAGE_KEYS.PEMBAYARAN, result);
           return result;
@@ -247,7 +236,14 @@ class PinjamanAPI {
     } catch (err) {
       console.warn(`[PinjamanAPI] Gagal fetch (${action}):`, err);
       if (method !== 'GET') throw err;
-      return AppStorage.getLocalData(STORAGE_KEYS.PINJAMAN, []);
+      if (options.forceFresh) throw err;
+      const cacheKey = {
+        getDataPinjaman: STORAGE_KEYS.PINJAMAN,
+        getTrackerData: STORAGE_KEYS.TRACKER,
+        getRiwayatPembayaran: STORAGE_KEYS.PEMBAYARAN
+      }[action];
+      if (!cacheKey) throw err;
+      return AppStorage.getLocalData(cacheKey, []);
     }
   }
 }

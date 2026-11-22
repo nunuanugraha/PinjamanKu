@@ -429,14 +429,14 @@
     let currentRiwayatPage = 1;
     const riwayatPageSize = 10;
 
-    async function loadAllData() {
+    async function loadAllData(forceFresh = false) {
       const tbody = document.getElementById('tablePinjaman');
       tbody.innerHTML = `<tr><td colspan="8" class="text-center py-12 text-slate-400"><i class="ph ph-spinner-gap animate-spin mr-1"></i> Memuat data...</td></tr>`;
 
       try {
         const [pinjamanRes, riwayatRes] = await Promise.all([
-          PinjamanAPI.request('getDataPinjaman', 'GET'),
-          PinjamanAPI.request('getRiwayatPembayaran', 'GET')
+          PinjamanAPI.request('getDataPinjaman', 'GET', null, { forceFresh }),
+          PinjamanAPI.request('getRiwayatPembayaran', 'GET', null, { forceFresh })
         ]);
         allPinjaman = Array.isArray(pinjamanRes) ? pinjamanRes : [];
         allRiwayat = Array.isArray(riwayatRes) ? riwayatRes : [];
@@ -444,8 +444,10 @@
         updateTabCounts();
         renderTable();
         renderRiwayat();
+        return true;
       } catch (e) {
         tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-rose-500">Gagal memuat data dari database.</td></tr>`;
+        return false;
       }
     }
 
@@ -920,7 +922,9 @@
         let paymentConfirmed = false;
         for (let i = 0; i < 3; i++) {
           await new Promise(resolve => setTimeout(resolve, i === 0 ? 800 : 1200));
-          await loadAllData();
+          const refreshed = await loadAllData(true);
+          if (!refreshed) continue;
+
           if (jenisPembayaran === 'pelunasan') {
             const updatedLoan = allPinjaman.find(x => String(x.id).trim() === String(payload.loanId).trim());
             paymentConfirmed = updatedLoan && String(updatedLoan.status).toLowerCase() === 'lunas';
