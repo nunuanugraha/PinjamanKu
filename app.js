@@ -2,7 +2,7 @@
  * PinjamanKu Client API & Storage Engine (Universal Login & Direct Data Engine)
  */
 
-const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbydn4IH4OL9YBerSoFFyp1qI7bd5UJdGKHojZx6DuIQfaKQnoufiC7TtqRdi2nBccsA/exec';
+const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbyotmn1nDMWu70w8xY5xuPctSKgu4LyRT_G6CHIWI_yTnXndYGbT4iBy2emlg-EfzC1/exec';
 const STORAGE_KEYS = {
   AUTH: 'pinjamanku_auth_session',
   PINJAMAN: 'pinjamanku_data_pinjaman',
