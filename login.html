@@ -148,8 +148,10 @@
   <script>
     // Cek sesi login
     const auth = AppStorage.getAuth();
-    if (auth && auth.isLoggedIn && auth.token) {
+    if (auth && auth.isLoggedIn && auth.serverAuth && auth.token) {
       window.location.replace('dashboard.html');
+    } else if (auth) {
+      AppStorage.clearAuth();
     }
 
     function togglePasswordVisibility() {
@@ -182,6 +184,7 @@
         if (res && res.success && res.token) {
           AppStorage.setAuth({
             isLoggedIn: true,
+            serverAuth: true,
             username: user,
             name: res.name || 'Nunu Anugraha',
             token: res.token,

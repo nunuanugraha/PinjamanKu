@@ -50,7 +50,7 @@ PinjamanKu/
 1. Buka spreadsheet Google Anda (atau buat baru) di [Google Sheets](https://sheets.google.com).
 2. Klik menu **Extensions (Ekstensi)** > **Apps Script**.
 3. Hapus kode default di editor, lalu salin dan tempel seluruh isi file **`GoogleAppsScript_Deploy.js`**.
-4. Sesuaikan konstanta `SPREADSHEET_ID` di baris atas dengan ID Spreadsheet Anda (sudah otomatis terisi dengan ID bawaan proyek Anda).
+4. Di **Project Settings** > **Script Properties**, isi `SPREADSHEET_ID`, `APP_USERNAME`, dan `APP_PASSWORD`. Akun default dari backend hanya untuk uji coba, ganti dengan kredensial unik. Login saat ini memakai JSONP melalui HTTPS, sehingga kredensial menjadi parameter URL; jangan gunakan password yang dipakai untuk layanan lain.
 5. Klik **Deploy** > **New deployment**:
    - Pilih type: **Web app**
    - **Execute as**: `Me` (Akun Anda)
@@ -58,6 +58,7 @@ PinjamanKu/
 6. Klik **Deploy** dan berikan izin akses (Authorize access).
 7. Salin URL Web App yang dihasilkan (berakhiran `/exec`).
 8. Buka aplikasi web PinjamanKu Anda, klik tombol **"Set DB"** atau **"Konfigurasi DB"**, lalu tempel URL tersebut. Klik **Simpan**. Selesai! Data Anda sekarang langsung terhubung dengan Google Spreadsheet & Drive!
+9. Setelah memperbarui kode Apps Script, pilih **Deploy** > **Manage deployments** > **Edit** > **New version** > **Deploy**. Login ulang di aplikasi agar token sesi server yang baru tersimpan.
 
 ---
 

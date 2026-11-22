@@ -9,7 +9,7 @@
   <script>
     // Routing otomatis
     const auth = AppStorage.getAuth();
-    if (auth && auth.isLoggedIn) {
+    if (auth && auth.isLoggedIn && auth.serverAuth && auth.token) {
       window.location.replace('dashboard.html');
     } else {
       window.location.replace('login.html');

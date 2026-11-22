@@ -5,11 +5,6 @@
 const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbwpKPcPnd74DMT32jnc4QRxNawo-KqmigkyG-8-GznZx06TxCaPs4-SFEYvaJSBs5E/exec';
 const BACKUP_SPREADSHEET_ID = '1LUs1Ro7nUDNvD8rA-QNfsznXH4BMnHYdbfv6cv6CYOA';
 
-const CREDENTIALS = {
-  USER_HASH: "0493864da5e656910e52718cf2333b664be8695029fc8b5665b1129b61e2cb09", 
-  PASS_HASH: "df0ee65f6f25032877e8348842139e80c8680ad9eef5a38210137d6e8cb4ee82"  
-};
-
 const STORAGE_KEYS = {
   AUTH: 'pinjamanku_auth_session',
   PINJAMAN: 'pinjamanku_data_pinjaman',
@@ -72,7 +67,7 @@ class AppStorage {
 
   static checkAuth() {
     const auth = this.getAuth();
-    if (!auth || !auth.isLoggedIn) {
+    if (!auth || !auth.isLoggedIn || !auth.serverAuth || !auth.token) {
       window.location.replace('login.html');
       return false;
     }
@@ -107,19 +102,37 @@ class PinjamanAPI {
 
   // Verifikasi login aman (Mendukung p@ssword123! dan varian p\@ssword123!)
   static async login(username, password) {
-    const u = String(username || '').toLowerCase().trim();
-    const p = String(password || '').trim();
+    const url = new URL(AppStorage.getApiUrl());
+    const callbackName = `pinjamanLogin${Date.now()}${Math.random().toString(36).slice(2)}`;
+    url.searchParams.set('action', 'login');
+    url.searchParams.set('u', String(username || '').trim());
+    url.searchParams.set('p', String(password || ''));
+    url.searchParams.set('callback', callbackName);
 
-    // Terima kredensial resmi
-    if (u === 'nunuanugraha' && (p === 'p@ssword123!' || p === 'p\\@ssword123!' || p === 'password123!')) {
-      const token = "session_" + Date.now().toString(36) + Math.random().toString(36).substring(2);
-      return {
-        success: true,
-        token: token,
-        name: "Nunu Anugraha"
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      const timeout = setTimeout(() => {
+        cleanup();
+        reject(new Error('Waktu koneksi ke server login habis.'));
+      }, 15000);
+
+      const cleanup = () => {
+        clearTimeout(timeout);
+        delete window[callbackName];
+        script.remove();
       };
-    }
-    return { success: false, message: "Username atau password salah!" };
+
+      window[callbackName] = result => {
+        cleanup();
+        resolve(result);
+      };
+      script.onerror = () => {
+        cleanup();
+        reject(new Error('Tidak dapat terhubung ke server login.'));
+      };
+      script.src = url.toString();
+      document.head.appendChild(script);
+    });
   }
 
   // Mengambil data sheet
@@ -217,12 +230,17 @@ class PinjamanAPI {
         }
       } else {
         // Operasi POST
+        const auth = AppStorage.getAuth();
+        if (!auth || !auth.token) {
+          throw new Error('Sesi login tidak valid. Silakan keluar lalu masuk kembali.');
+        }
+
         const res = await fetch(AppStorage.getApiUrl(), {
           method: 'POST',
           mode: 'no-cors',
           redirect: 'follow',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ action: action, data: data })
+          body: JSON.stringify({ action: action, data: data, token: auth.token })
         });
         return { success: true, pending: res.type === 'opaque' };
       }
