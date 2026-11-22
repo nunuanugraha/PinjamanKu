@@ -217,7 +217,7 @@ class PinjamanAPI {
         }
       } else {
         // Operasi POST
-        const res = await fetch(this.getApiUrl(), {
+        const res = await fetch(AppStorage.getApiUrl(), {
           method: 'POST',
           redirect: 'follow',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
