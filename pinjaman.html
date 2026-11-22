@@ -906,17 +906,34 @@
         nominalPembayaran,
         catatan: document.getElementById('bayarCatatan').value
       };
+      const countMatchingPayments = () => allRiwayat.filter(item =>
+        String(item.loanId).trim() === String(payload.loanId).trim() &&
+        String(item.tanggalPembayaran).slice(0, 10) === payload.tanggalPembayaran &&
+        Number(item.nominalPembayaran) === payload.nominalPembayaran &&
+        String(item.jenisPembayaran).toLowerCase() === jenisPembayaran
+      ).length;
+      const previousMatchingPayments = countMatchingPayments();
 
       try {
-        const res = await PinjamanAPI.request('prosesCicilan', 'POST', payload);
-        showAlert(res.message || 'Pembayaran berhasil dicatat!', 'success');
+        await PinjamanAPI.request('prosesCicilan', 'POST', payload);
         closeModalBayar();
+        let paymentConfirmed = false;
         for (let i = 0; i < 3; i++) {
           await new Promise(resolve => setTimeout(resolve, i === 0 ? 800 : 1200));
           await loadAllData();
-          if (jenisPembayaran !== 'pelunasan') break;
-          const updatedLoan = allPinjaman.find(x => String(x.id).trim() === String(payload.loanId).trim());
-          if (updatedLoan && String(updatedLoan.status).toLowerCase() === 'lunas') break;
+          if (jenisPembayaran === 'pelunasan') {
+            const updatedLoan = allPinjaman.find(x => String(x.id).trim() === String(payload.loanId).trim());
+            paymentConfirmed = updatedLoan && String(updatedLoan.status).toLowerCase() === 'lunas';
+          } else {
+            paymentConfirmed = countMatchingPayments() > previousMatchingPayments;
+          }
+          if (paymentConfirmed) break;
+        }
+
+        if (paymentConfirmed) {
+          showAlert('Pembayaran berhasil dicatat dan status sudah diperbarui.', 'success');
+        } else {
+          showAlert('Permintaan pembayaran sudah dikirim, tetapi perubahan belum terverifikasi dari database. Periksa spreadsheet sebelum mencoba lagi agar tidak tercatat dua kali.', 'error');
         }
       } catch (err) {
         showAlert('Gagal mencatat pembayaran: ' + err.message, 'error');
